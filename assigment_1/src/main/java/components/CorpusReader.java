@@ -15,9 +15,9 @@ import java.util.*;
  *
  * @author rute
  */
-public class CorposReader {
+public class CorpusReader {
      
-    public CorposReader(){
+    public CorpusReader(){
     
     
     }
