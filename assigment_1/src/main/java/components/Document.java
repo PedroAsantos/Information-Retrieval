@@ -16,6 +16,6 @@ public class Document {
     
     public Document(int id, int nOcurrences){
         this.id = id;
-        this.nOcurrences=nOcurrenceS;
+        this.nOcurrences=nOcurrences;
     }
 }

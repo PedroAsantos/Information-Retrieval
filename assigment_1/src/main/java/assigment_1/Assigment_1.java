@@ -6,8 +6,10 @@
 package assigment_1;
 
 import components.CorpusReader;
+import components.ImprovedTokenizer;
 import components.Indexer;
 import components.SimpleTokenizer;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 
@@ -20,7 +22,7 @@ public class Assigment_1 {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
        /*
         List<String> corpus = null;
         Indexer invertedIndexer = new Indexer();
@@ -73,6 +75,22 @@ public class Assigment_1 {
        
        
        System.out.println("Hello");
+       
+       /*
+       String testeStemmer = ImprovedTokenizer.stemming("running");
+       System.out.println(testeStemmer);
+       */
+       
+       //List<String> testeStop = ImprovedTokenizer.stopwordFilter("this is a list of words");
+       //testeStop.forEach(System.out::println);
+       
+       
+      //List<String> testeSpecial = ImprovedTokenizer.specialCharacters("bob's b.e.a.t.r.i.z. black-vultures bia@coronha");
+      //testeSpecial.forEach(System.out::println);
+      
+      List<String> testando = ImprovedTokenizer.personalizedTokenize("this is a list of words bob's b.e.a.t.r.i.z. black-vultures biacoronha@gmail.com");
+      testando.forEach(System.out::println);
+       
     }
     
 }
