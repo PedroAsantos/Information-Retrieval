@@ -94,8 +94,9 @@ public class ImprovedTokenizer {
         String filteredList = String.join(" ", filtered);
         
         //deal with special characters
-        List<String> result = Arrays.asList(filteredList.replaceAll("'", "").replaceAll("\\.", "").replaceAll("@", "")
-                .replaceAll("-", " ").replaceAll("\\s+"," ").split(" "));
+        
+        
+        List<String> result = Arrays.asList(filteredList.replaceAll("[^a-zA-Z 0-9]", "").replaceAll("\\s+"," ").split(" "));
         
         return result;
         
