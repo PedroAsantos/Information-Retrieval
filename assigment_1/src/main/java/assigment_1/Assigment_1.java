@@ -76,19 +76,12 @@ public class Assigment_1 {
        
        System.out.println("Hello");
        
-       /*
-       String testeStemmer = ImprovedTokenizer.stemming("running");
-       System.out.println(testeStemmer);
-       */
        
-       //List<String> testeStop = ImprovedTokenizer.stopwordFilter("this is a list of words");
-       //testeStop.forEach(System.out::println);
+       //String testeStemmer = ImprovedTokenizer.stemming("running");
+      // System.out.println(testeStemmer);
        
-       
-      //List<String> testeSpecial = ImprovedTokenizer.specialCharacters("bob's b.e.a.t.r.i.z. black-vultures bia@coronha");
-      //testeSpecial.forEach(System.out::println);
       
-      List<String> testando = ImprovedTokenizer.personalizedTokenize("this is a list of words bob's b.e.a.t.r.i.z. black-vultures biacoronha@gmail.com");
+      List<String> testando = ImprovedTokenizer.personalizedTokenize("i'm running this is a list of words bob's b.e.a.t.r.i.z. black-vultures biacoronha@gmail.com");
       testando.forEach(System.out::println);
        
     }
