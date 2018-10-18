@@ -64,11 +64,9 @@ public class ImprovedTokenizer {
   
     
     public static List<String> specialCharacters(String documentLine){
-        //Apostrophes, periods and @ ignored, "-" replaced by space
-        List<String> inicial = new ArrayList<String>(Arrays.asList(documentLine.toLowerCase().replaceAll("'", "")
-            .replaceAll("\\.", "").replaceAll("@", "").replaceAll("-", " ").replaceAll("\\s+"," ").split(" ")));
+        List<String> result = Arrays.asList(filteredList.replaceAll("[^a-zA-Z 0-9]", "").replaceAll("\\s+"," ").split(" "));
         
-        return inicial;
+        return result;
     }
     
     */
@@ -93,10 +91,15 @@ public class ImprovedTokenizer {
         
         String filteredList = String.join(" ", filtered);
         
+        //stemming
+        SnowballStemmer stemmer = new englishStemmer();
+        stemmer.setCurrent(filteredList); //set string you need to stem
+        stemmer.stem();  //stem the word
+        String stemmedList = stemmer.getCurrent();//get the stemmed word
+        
         //deal with special characters
         
-        
-        List<String> result = Arrays.asList(filteredList.replaceAll("[^a-zA-Z 0-9]", "").replaceAll("\\s+"," ").split(" "));
+        List<String> result = Arrays.asList(stemmedList.replaceAll("[^a-zA-Z 0-9]", "").replaceAll("\\s+"," ").split(" "));
         
         return result;
         
