@@ -5,11 +5,13 @@
  */
 package components;
 
+import java.io.Serializable;
+
 /**
  *
  * @author rute
  */
-public class Document {
+public class Document implements Serializable, Comparable<Document>{
     
     private int id;
     private int nOcurrences;
@@ -18,4 +20,31 @@ public class Document {
         this.id = id;
         this.nOcurrences=nOcurrences;
     }
+
+    @Override
+    public String toString() {
+        return id + ":" + nOcurrences; //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public int getId(){
+        return id;
+    }
+    public int getNOcurrences(){
+        return nOcurrences;
+    }
+        
+    @Override
+    public int compareTo(Document t) {
+        if(this.id < t.getId()){
+            return -1;
+        }
+        if(this.id> t.getId()){
+            return 1;
+        }
+        
+        return 0;
+    }
+    
+    
+    
 }
