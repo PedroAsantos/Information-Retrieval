@@ -47,7 +47,7 @@ public class SimpleTokenizer {
          //Lower case all the letters, remove non alphabetics characters, 
          List<String> tokensLine = new ArrayList<String>(Arrays.asList(documentLine.toLowerCase().replaceAll("[^A-Za-z]", " ").replaceAll("\\s+"," ").split(" ")));
          
-         return tokensLine.stream().filter(x -> x.length()>3).collect(Collectors.toList());
+         return tokensLine.stream().filter(x -> x.length()>=3).collect(Collectors.toList());
     }
     
     private static String stringReplace(String stringConverting) {

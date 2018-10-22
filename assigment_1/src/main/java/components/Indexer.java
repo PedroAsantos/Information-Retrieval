@@ -6,9 +6,11 @@
 package components;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
@@ -33,7 +35,7 @@ public class Indexer {
     private Map<String,List<Document>> invertedIndex;
     private int numberBlock;
     private PrintWriter writer=null;
-    private static final int MAXSIZEBLOCKINDEX=150;
+    private static final int MAXSIZEBLOCKINDEX=500;
     //dicionario in memory and localization of the postinglist
     public Indexer(){
         this.invertedIndex = new TreeMap<String,List<Document>>();
@@ -116,7 +118,7 @@ public class Indexer {
         
         String line = null;
         String[] lineArray = null;
-        
+        //put in the queu the first term of each block
         for(int block = 0;block < numberBlock;block++){
             try {
                 line = bufferedReaders.get(block).readLine();
@@ -131,17 +133,17 @@ public class Indexer {
         String[] postingList = null;
         String docId;
         String freq;
-        
+        //create file for indexer
         createIndexerFile();
         
         while(!pq.isEmpty()){
             try {
-                         
+                //remove from queue by alphabetic order
                 do{
                     listEntries.add(pq.poll());
                                        
                 }while(!pq.isEmpty() && listEntries.get(0).compareTo(pq.peek())==0);
-                           
+                //if it is true, it means that several blocks has the same terme -> merge posting lists
                 if(listEntries.size()>1){
                     //transformar tudo numa entry, ordenar as posting lists
                     for(int i = 0;i<listEntries.size();i++){ 
@@ -154,8 +156,9 @@ public class Indexer {
                             mergedPostingList.add(new Document(Integer.parseInt(docId),Integer.parseInt(freq))); 
                         }    
                     }
+                    //sort merged postling lsit
                     Collections.sort(mergedPostingList);
-                    
+                    //write to indexer term with the posting list merged
                     writeMergedPostingListIndexFile(listEntries.get(0).getTerm(),mergedPostingList);
                     
                     //escrever no index File a entry final
@@ -183,55 +186,27 @@ public class Indexer {
     }
     
     private void createIndexerFile(){
+        FileWriter fw;
         try {
-            writer = new PrintWriter("indexer.txt", "UTF-8");
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnsupportedEncodingException ex) {
+            fw = new FileWriter("indexer.txt");
+            BufferedWriter bw = new BufferedWriter(fw);
+            writer = new PrintWriter(fw);
+        } catch (IOException ex) {
             Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
     }
       
     private void writeMergedPostingListIndexFile(String term, List<Document> mergedPostingList){
-         writer.println(term+ "," + mergedPostingList); 
+         writer.println(term+ "," +  Arrays.toString(mergedPostingList.toArray()).replaceAll("[\\p{Ps}\\p{Pe}]","")); 
     }
         
     private void writeIndexFile(EntryTermPost entry){
-        writer.println(entry.getTerm()+ "," + entry.getPostingList()); 
+        writer.println(entry.getTerm()+ "," + entry.getPostingList().replaceAll("[\\p{Ps}\\p{Pe}]","")); 
     }
     
     private void closePrinter(){
         writer.close();
-    }
-    public void testeQueue(){
-        PriorityQueue<String> queu = new PriorityQueue<String>();
-        queu.add("pedro");
-        queu.add("emanuel");
-        queu.add("asda");
-        queu.add("ad");
-        queu.add("asda");
-        while(!queu.isEmpty()){
-            System.out.println(queu.poll());
-        }
-    }
-    
-    
-    private void serializeBlock(){
-        try {
-            FileOutputStream fileOut = new FileOutputStream("/tmp/indexer_"+numberBlock+".ser");
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(invertedIndex);
-            out.close();
-            fileOut.close();
-            System.out.println("/tmp/indexer_"+numberBlock+".ser");
-        } catch (IOException i) {
-            i.printStackTrace();
-        } finally{
-            invertedIndex.clear();
-            numberBlock++;
-        }
-    }
-    
-    
+    } 
  
 }

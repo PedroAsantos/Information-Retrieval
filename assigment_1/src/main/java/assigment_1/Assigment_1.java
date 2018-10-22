@@ -9,7 +9,14 @@ import components.CorpusDocument;
 import components.CorpusReader;
 import components.Indexer;
 import components.SimpleTokenizer;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -25,6 +32,10 @@ public class Assigment_1 {
         long startTime = System.currentTimeMillis();
                
         
+        String filename;
+        filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";
+        CorpusReader corpusReader = new CorpusReader(filename);
+        
         List<CorpusDocument> corpus = null;
         Indexer invertedIndexer = new Indexer();
         
@@ -35,37 +46,42 @@ public class Assigment_1 {
         columnNumbers[1]=12;
         columnNumbers[2]=13;
                 
-        fileNames[0]="/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";
+ 
         
-        try {
+        do{
+            try {
             //read to memory the files
             //each document in the posisiton of the arraylist;
-            corpus = CorpusReader.corpusReader(fileNames,columnNumbers);
+            corpus = corpusReader.corpusReader(columnNumbers);
         } catch (Exception e) {
             System.out.print("Exception: ");
             System.out.println(e.getMessage());
         }
+            if(corpus.size()!=0){
+               corpus.stream().forEach(x->{invertedIndexer.addToPostingList(SimpleTokenizer.tokenize(x.getCorpus()),x.getDocId());});       
+            }
+            System.out.println("Corpus size: "+ corpus.size());
+        }while(corpus.size()!=0);
+        
         
         //Put each token's document in the index.
-         corpus.stream().forEach(x->{invertedIndexer.addToPostingList(SimpleTokenizer.tokenize(x.getCorpus()),x.getDocId());});
+         
      /*   List<String> tokens;
         for(int docId=0;docId<corpus.size();docId++){
             tokens = SimpleTokenizer.tokenize(corpus.get(docId));
             invertedIndexer.addToPostingList(tokens,docId);
         }*/
         
-        long stopTime = System.currentTimeMillis();
-        long elapsedTime = stopTime - startTime;
-        System.out.println("ElapseTime->"+elapsedTime);
-        invertedIndexer.testeQueue();
-        //it is necessary to save the last block that it is onlyin memory.
-        
-        
-        
+     
+        //it is necessary to save the last block that it is onlyin 
+        System.out.println("Merge Blocks");
         invertedIndexer.mergeBlocks();
       //  invertedIndexer.printIndex();
 
-        
+        long stopTime = System.currentTimeMillis();
+        long elapsedTime = stopTime - startTime;
+        System.out.println("ElapseTime->"+elapsedTime);
+       
        /* 
         
         Indexer invertedIndex1 = new Indexer();
