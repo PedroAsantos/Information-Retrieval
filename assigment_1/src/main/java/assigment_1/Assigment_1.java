@@ -49,7 +49,7 @@ public class Assigment_1 {
         columnNumbers[2]=13;
         
         try {
-            System.out.println("impro: "+ ImprovedTokenizer.personalizedTokenize("This is a very complex tokleniser for myself, right? car's pedro will be very good"));
+            System.out.println("impro: "+ ImprovedTokenizer.personalizedTokenize("@This is a improving very complex tokleniser for myself, right? car's pedro will be very good pedro@gmail.com(my mail [familiar])"));
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Assigment_1.class.getName()).log(Level.SEVERE, null, ex);
         }

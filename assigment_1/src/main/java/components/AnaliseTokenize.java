@@ -120,18 +120,5 @@ public class AnaliseTokenize {
         }   
         return pq;
     }
-    public static void testeQueu(){
-        
-        PriorityQueue<TermFreqHigher> pq = new PriorityQueue<TermFreqHigher>();
-        pq.add(new TermFreqHigher("pedro", 2));
-        pq.add(new TermFreqHigher("asd", 10));
-        pq.add(new TermFreqHigher("pro", 3));
-        pq.add(new TermFreqHigher("dro", 1));
-        pq.add(new TermFreqHigher("sdasfro", 21));
-        
-        while(!pq.isEmpty()){
-            System.out.println(pq.poll());
-        }
-        
-    }
+
 }
