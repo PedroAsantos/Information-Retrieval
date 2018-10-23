@@ -24,7 +24,7 @@ public class CorpusReader {
     private FileReader fileReader;
     private BufferedReader bufferedReader;
     private int docId=0;
-    private static final int MAXIMUN_DOCS=50;
+    private static final int MAXIMUN_DOCS=10000;
     
     public CorpusReader(String fileName){
         try {
@@ -63,10 +63,10 @@ public class CorpusReader {
                return corpus;
             }
             //temp 
-            if(docId==100){
+            /*if(docId==100){
                corpus.clear();
                return corpus;
-            }
+            }*/
                 
             //split line
             currentLineTokens = line.split("\t");
@@ -79,8 +79,8 @@ public class CorpusReader {
                 lineToSave+="\t";
               }
             }
-                
-            // System.out.println("linetosave: "+lineToSave);
+               
+           // System.out.println("linetosave: "+lineToSave);
             // if(!lineToSave.equals("")){
             corpus.add(new CorpusDocument(lineToSave,docId));
             //corpus.add(lineToSave);
@@ -96,10 +96,10 @@ public class CorpusReader {
             
             docId++;
             countBlockDocs++;
+        }      
+        if(corpus.isEmpty()){
+            bufferedReader.close();
         }
-        
-        
-         
             /*
                  The document should be processed to ignore any irrelevant sections and clean any existing tags
             */

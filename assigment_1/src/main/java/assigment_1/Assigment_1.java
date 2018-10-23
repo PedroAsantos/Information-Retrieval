@@ -5,11 +5,14 @@
  */
 package assigment_1;
 
+import components.AnaliseTokenize;
 import components.CorpusDocument;
 import components.CorpusReader;
+import components.ImprovedTokenizer;
 import components.Indexer;
 import components.SimpleTokenizer;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Files;
@@ -30,39 +33,43 @@ public class Assigment_1 {
      */
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
-               
-        
+         
         String filename;
         filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";
         CorpusReader corpusReader = new CorpusReader(filename);
         
         List<CorpusDocument> corpus = null;
         Indexer invertedIndexer = new Indexer();
-        
+       
         String[] fileNames = new String[1];
         int[] columnNumbers = new int[3];
         
         columnNumbers[0]=5;
         columnNumbers[1]=12;
         columnNumbers[2]=13;
-                
- 
         
+        try {
+            System.out.println("impro: "+ ImprovedTokenizer.personalizedTokenize("qwe asdsad-this, does"));
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Assigment_1.class.getName()).log(Level.SEVERE, null, ex);
+        }
+       
         do{
             try {
             //read to memory the files
             //each document in the posisiton of the arraylist;
-            corpus = corpusReader.corpusReader(columnNumbers);
-        } catch (Exception e) {
-            System.out.print("Exception: ");
-            System.out.println(e.getMessage());
-        }
-            if(corpus.size()!=0){
+                corpus = corpusReader.corpusReader(columnNumbers);
+            } catch (Exception e) {
+                 System.out.print("Exception: ");
+                 System.out.println(e.getMessage());
+            }
+            if(!corpus.isEmpty()){
                corpus.stream().forEach(x->{invertedIndexer.addToPostingList(SimpleTokenizer.tokenize(x.getCorpus()),x.getDocId());});       
             }
-            System.out.println("Corpus size: "+ corpus.size());
-        }while(corpus.size()!=0);
-        
+        }while(!corpus.isEmpty());
+        //write on disk the rest of the index that it is in memory
+        invertedIndexer.writeLastBlock();
+       
         
         //Put each token's document in the index.
          
@@ -71,6 +78,9 @@ public class Assigment_1 {
             tokens = SimpleTokenizer.tokenize(corpus.get(docId));
             invertedIndexer.addToPostingList(tokens,docId);
         }*/
+        long stopTime = System.currentTimeMillis();
+        long elapsedTime = stopTime - startTime;
+        System.out.println("ElapseTime->"+elapsedTime);
         
      
         //it is necessary to save the last block that it is onlyin 
@@ -78,10 +88,10 @@ public class Assigment_1 {
         invertedIndexer.mergeBlocks();
       //  invertedIndexer.printIndex();
 
-        long stopTime = System.currentTimeMillis();
-        long elapsedTime = stopTime - startTime;
-        System.out.println("ElapseTime->"+elapsedTime);
-       
+        
+        System.out.println("Vocabulary Size: "+AnaliseTokenize.getVocabularySize("indexer.txt"));
+        System.out.println("Ten Terms Freq One:"+ AnaliseTokenize.getTenTermsFreqOne("indexer.txt"));
+        System.out.println("Most freq terms: "+ AnaliseTokenize.getTermsWithHigherFreq("indexer.txt"));
        /* 
         
         Indexer invertedIndex1 = new Indexer();

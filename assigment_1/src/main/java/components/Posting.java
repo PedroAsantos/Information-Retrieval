@@ -11,12 +11,12 @@ import java.io.Serializable;
  *
  * @author rute
  */
-public class Document implements Serializable, Comparable<Document>{
+public class Posting implements Serializable, Comparable<Posting>{
     
     private int id;
     private int nOcurrences;
     
-    public Document(int id, int nOcurrences){
+    public Posting(int id, int nOcurrences){
         this.id = id;
         this.nOcurrences=nOcurrences;
     }
@@ -34,7 +34,7 @@ public class Document implements Serializable, Comparable<Document>{
     }
         
     @Override
-    public int compareTo(Document t) {
+    public int compareTo(Posting t) {
         if(this.id < t.getId()){
             return -1;
         }

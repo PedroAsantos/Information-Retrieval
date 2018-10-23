@@ -32,75 +32,87 @@ import java.util.stream.Collectors;
  * @author rute
  */
 public class Indexer {
-    private Map<String,List<Document>> invertedIndex;
+    private Map<String,List<Posting>> invertedIndex;
     private int numberBlock;
     private PrintWriter writer=null;
-    private static final int MAXSIZEBLOCKINDEX=500;
+    private static final int MAXSIZEBLOCKINDEX=30000;
     //dicionario in memory and localization of the postinglist
     public Indexer(){
-        this.invertedIndex = new TreeMap<String,List<Document>>();
+        this.invertedIndex = new TreeMap<String,List<Posting>>();
         this.numberBlock=0;
     }
     
-    private void add(String term, Document doc){
+    private void add(String term, Posting doc){
         if(invertedIndex.size()==MAXSIZEBLOCKINDEX){
             writeBlockToFile();
         }
         
         
         if(!invertedIndex.containsKey(term)){
-          invertedIndex.put(term, new ArrayList<Document>(Arrays.asList(doc)));
+          invertedIndex.put(term, new ArrayList<Posting>(Arrays.asList(doc)));
         }else{
-            List<Document> tempListDocs = invertedIndex.get(term);
+            List<Posting> tempListDocs = invertedIndex.get(term);
             tempListDocs.add(doc);
             invertedIndex.put(term, tempListDocs);
-
         }
        
     }
     
     public boolean addToPostingList(List<String> documentString,int documentId){
         //add words of this document to index. 
-        
+      
         //counting the number of each term that happens in the doc
         Map<String, Long> counts = documentString.stream().collect(Collectors.groupingBy(e -> e, Collectors.counting()));
         //removing repeated elements
         documentString = documentString.stream().distinct().collect(Collectors.toList());
         
         //add to the index the term and the correspondent document
-        documentString.stream().forEach(x -> {add(x,new Document(documentId,Math.toIntExact(counts.get(x))));});
-        
+        documentString.stream().forEach(x -> {add(x,new Posting(documentId,Math.toIntExact(counts.get(x))));});
         
         return true;
     }
         
     
     public void printIndex(){
-        for (Map.Entry<String, List<Document>> entry : invertedIndex.entrySet()) {
+        for (Map.Entry<String, List<Posting>> entry : invertedIndex.entrySet()) {
             System.out.println(entry.getKey() + ":" + entry.getValue().toString());
         }                   
     }
     
     
     private void writeBlockToFile(){
-        PrintWriter writer=null;
+        
         try {
-            writer = new PrintWriter("indexer_"+numberBlock+".txt", "UTF-8");
+            
+            FileWriter fw = new FileWriter("indexer_"+numberBlock+".txt");
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter writerBlock = new PrintWriter(bw);
+           
+            invertedIndex.entrySet().forEach((entry) -> {
+            //System.out.println(entry.getKey() + " = " + entry.getValue());
+            writerBlock.println(entry.getKey() + ";" + entry.getValue().toString());
+            });
+            
+            writerBlock.close();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
+        }finally{
+            invertedIndex.clear();
+            numberBlock++;
         }
 
-        for (Map.Entry<String, List<Document>> entry : invertedIndex.entrySet()) {
-            //System.out.println(entry.getKey() + " = " + entry.getValue());
-            writer.println(entry.getKey() + ";" + entry.getValue().toString());
-        }
-        writer.close();
-        invertedIndex.clear();
-        numberBlock++;
+        
+      
     }
-    
+    public void writeLastBlock(){
+        if(!invertedIndex.isEmpty()){
+            writeBlockToFile();
+        }
+    }
     public void mergeBlocks(){
         PriorityQueue<EntryTermPost> pq = new PriorityQueue<EntryTermPost>();
         
@@ -129,7 +141,7 @@ public class Indexer {
             pq.add(new EntryTermPost(lineArray[0],lineArray[1],block));
         }
         List<EntryTermPost> listEntries = new ArrayList<>();
-        List<Document> mergedPostingList = new ArrayList<>(); 
+        List<Posting> mergedPostingList = new ArrayList<>(); 
         String[] postingList = null;
         String docId;
         String freq;
@@ -149,18 +161,18 @@ public class Indexer {
                     for(int i = 0;i<listEntries.size();i++){ 
                         postingList = listEntries.get(i).getPostingList().replaceAll("[\\p{Ps}\\p{Pe}\\s+]","").split(",");
                       
-                        for(int post = 0;post < postingList.length ;post++){
-                            docId=postingList[post].split(":")[0].replaceAll(":","");
-                            freq=postingList[post].split(":")[1];
-                                                       
-                            mergedPostingList.add(new Document(Integer.parseInt(docId),Integer.parseInt(freq))); 
+                        for (String posting : postingList) {
+                            docId = posting.split(":")[0].replaceAll(":", "");
+                            freq = posting.split(":")[1];
+                            mergedPostingList.add(new Posting(Integer.parseInt(docId),Integer.parseInt(freq)));
                         }    
                     }
                     //sort merged postling lsit
                     Collections.sort(mergedPostingList);
                     //write to indexer term with the posting list merged
                     writeMergedPostingListIndexFile(listEntries.get(0).getTerm(),mergedPostingList);
-                    
+                    //clear posting list;
+                    mergedPostingList.clear();
                     //escrever no index File a entry final
                 }else{
                      writeIndexFile(listEntries.get(0));
@@ -170,7 +182,7 @@ public class Indexer {
                 for(int i=0;i<listEntries.size();i++){
                     if((line =  bufferedReaders.get(listEntries.get(i).getBlockNumber()).readLine())!= null){
                         lineArray = line.split(";");
-                        pq.add(new EntryTermPost(lineArray[0].replaceAll(",",""),lineArray[1],listEntries.get(i).getBlockNumber()));
+                        pq.add(new EntryTermPost(lineArray[0],lineArray[1],listEntries.get(i).getBlockNumber()));
                     }
                 }
                
@@ -180,8 +192,16 @@ public class Indexer {
             }
             
         }
-        closePrinter();
         
+        for (int block = 0; block < numberBlock; block++) {         
+            try {
+                bufferedReaders.get(block).close();
+            } catch (IOException ex) {
+                Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        closePrinter();
         
     }
     
@@ -190,14 +210,14 @@ public class Indexer {
         try {
             fw = new FileWriter("indexer.txt");
             BufferedWriter bw = new BufferedWriter(fw);
-            writer = new PrintWriter(fw);
+            writer = new PrintWriter(bw);
         } catch (IOException ex) {
             Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
       
-    private void writeMergedPostingListIndexFile(String term, List<Document> mergedPostingList){
+    private void writeMergedPostingListIndexFile(String term, List<Posting> mergedPostingList){
          writer.println(term+ "," +  Arrays.toString(mergedPostingList.toArray()).replaceAll("[\\p{Ps}\\p{Pe}]","")); 
     }
         
@@ -208,5 +228,6 @@ public class Indexer {
     private void closePrinter(){
         writer.close();
     } 
+    
  
 }

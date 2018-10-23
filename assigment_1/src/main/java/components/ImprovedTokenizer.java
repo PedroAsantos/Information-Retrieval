@@ -21,6 +21,8 @@ import org.tartarus.snowball.ext.englishStemmer;
  */
 
 public class ImprovedTokenizer {
+    private static final String[] arrayStopWords = {"qwe","qweqw","qweas"};
+    private static final List<String> stopwords = new ArrayList<String>(Arrays.asList(arrayStopWords));
     
     public ImprovedTokenizer(){
     }
@@ -81,48 +83,41 @@ public class ImprovedTokenizer {
     
     */
     public static List<String> personalizedTokenize(String documentLine) throws FileNotFoundException{
+        //stop words
        
-        //stemming
-        SnowballStemmer stemmer = new englishStemmer();         
-        
+      
         String[] temp = documentLine.replaceAll("\\s+"," ").split(" ");
         List<String> text = Arrays.asList(temp);
         
+        
+        System.out.println(stopwords);
+        List<String> filtered = text.stream()
+                .filter(word -> !stopwords.contains(word)).collect(Collectors.toList());
+        //stemming
+        SnowballStemmer stemmer = new englishStemmer();         
+        
+        
+        
         List<String> stemmedList = new ArrayList<>();
         
-        text.stream().forEach(s -> {
+        
+        filtered.stream().forEach(s -> {
             stemmer.setCurrent(s);
             stemmer.stem();
             stemmedList.add(stemmer.getCurrent());
         });
         
+            
         
-        
-       //stop words
-       Scanner scanner = new Scanner(new FileReader("stop.txt"));
-        List<String> stopwords = new ArrayList<>();   
-        
-        
-        while(scanner.hasNextLine()){
-            String word = scanner.nextLine();
-            stopwords.add(word);
-        }
-
-        String[] words = stopwords.toArray(new String[0]);
-        List<String> wordList = new ArrayList<>(Arrays.asList(words));
-        String[] filtered = stemmedList.stream().map(statement -> Arrays.asList(statement))
-                .map(listOfWords -> listOfWords.stream().filter(word -> !wordList.contains(word)).collect(Collectors.joining(" ")))
-                    .toArray(String[]::new);
-        
-        String filteredList = Arrays.toString(filtered);    
-        
+        //String filteredList = Arrays.toString(filtered);    
+        String filteredList = String.join(", ", stemmedList);
         //deal with special characters
         
-        List<String> result = Arrays.asList(filteredList.toLowerCase().replaceAll("[^a-zA-Z 0-9]", "").split("\\s+"));
+        List<String> result = Arrays.asList(filteredList.toLowerCase().replaceAll("[^a-zA-Z 0-9]", " ").split("\\s+"));
   
         
         
-        return result.stream().filter(x -> x.length()>3).collect(Collectors.toList());
+        return result;
         
     }
     
