@@ -7,11 +7,8 @@ package components;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.text.NumberFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,16 +51,16 @@ public class CorpusReader {
         
            
         //skip first line that has the column names
-        if(docId==0){
+        /*if(docId==0){
             bufferedReader.readLine();
-        }
+        }*/
         //read each line
         while((line = bufferedReader.readLine()) != null) {
             if(countBlockDocs==MAXIMUN_DOCS){
                return corpus;
             }
             //temp 
-            /*if(docId==100){
+           /* if(docId==100){
                corpus.clear();
                return corpus;
             }*/

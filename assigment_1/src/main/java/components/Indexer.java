@@ -8,17 +8,13 @@ package components;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -29,7 +25,7 @@ import java.util.stream.Collectors;
 
 /**
  *
- * @author rute
+ *  @author Pedro Santos, 76532 /  Beatriz Coronha 92210    
  */
 public class Indexer {
     private Map<String,List<Posting>> invertedIndex;
@@ -43,7 +39,12 @@ public class Indexer {
     }
     
     private void add(String term, Posting doc){
+        
         if(invertedIndex.size()==MAXSIZEBLOCKINDEX){
+            writeBlockToFile();
+        }
+       // System.out.println("%="+((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()))/(Runtime.getRuntime().totalMemory()));
+        if(((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())*100)/(Runtime.getRuntime().totalMemory())>97){
             writeBlockToFile();
         }
         
@@ -114,14 +115,14 @@ public class Indexer {
         }
     }
     public void mergeBlocks(){
-        PriorityQueue<EntryTermPost> pq = new PriorityQueue<EntryTermPost>();
+        PriorityQueue<EntryTermPost> pq = new PriorityQueue<>();
         
         List<FileReader> fileReaders = new ArrayList<>();
         List<BufferedReader> bufferedReaders = new ArrayList<>();
         //inicialize file reader and buffer for each block file
         for (int block = 0; block < numberBlock; block++) {
             try {
-                fileReaders.add(new FileReader("/home/rute/Documents/cadeiras/5ano/ri/assigment_1/indexer_"+block+".txt"));
+                fileReaders.add(new FileReader("indexer_"+block+".txt"));
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -141,7 +142,7 @@ public class Indexer {
             pq.add(new EntryTermPost(lineArray[0],lineArray[1],block));
         }
         List<EntryTermPost> listEntries = new ArrayList<>();
-        List<Posting> mergedPostingList = new ArrayList<>(); 
+        PriorityQueue<Posting> mergedPostingList = new PriorityQueue<>(); 
         String[] postingList = null;
         String docId;
         String freq;
@@ -168,7 +169,7 @@ public class Indexer {
                         }    
                     }
                     //sort merged postling lsit
-                    Collections.sort(mergedPostingList);
+                    //Collections.sort(mergedPostingList);
                     //write to indexer term with the posting list merged
                     writeMergedPostingListIndexFile(listEntries.get(0).getTerm(),mergedPostingList);
                     //clear posting list;
@@ -217,7 +218,7 @@ public class Indexer {
         
     }
       
-    private void writeMergedPostingListIndexFile(String term, List<Posting> mergedPostingList){
+    private void writeMergedPostingListIndexFile(String term, PriorityQueue<Posting> mergedPostingList){
          writer.println(term+ "," +  Arrays.toString(mergedPostingList.toArray()).replaceAll("[\\p{Ps}\\p{Pe}]","")); 
     }
         

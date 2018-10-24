@@ -6,11 +6,9 @@
 package components;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
