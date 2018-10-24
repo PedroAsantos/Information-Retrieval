@@ -43,7 +43,7 @@ public class Indexer {
         if(invertedIndex.size()==MAXSIZEBLOCKINDEX){
             writeBlockToFile();
         }
-       // System.out.println("%="+((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()))/(Runtime.getRuntime().totalMemory()));
+       
         if(((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())*100)/(Runtime.getRuntime().totalMemory())>97){
             writeBlockToFile();
         }

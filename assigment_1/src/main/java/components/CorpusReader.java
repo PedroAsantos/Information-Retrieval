@@ -51,19 +51,15 @@ public class CorpusReader {
         
            
         //skip first line that has the column names
-        /*if(docId==0){
+        if(docId==0){
             bufferedReader.readLine();
-        }*/
+        }
         //read each line
         while((line = bufferedReader.readLine()) != null) {
             if(countBlockDocs==MAXIMUN_DOCS){
                return corpus;
             }
-            //temp 
-           /* if(docId==100){
-               corpus.clear();
-               return corpus;
-            }*/
+           
                 
             //split line
             currentLineTokens = line.split("\t");
@@ -77,19 +73,14 @@ public class CorpusReader {
               }
             }
                
-           // System.out.println("linetosave: "+lineToSave);
-            // if(!lineToSave.equals("")){
+         
             corpus.add(new CorpusDocument(lineToSave,docId));
-            //corpus.add(lineToSave);
-            //  }
+           
             lineToSave="";
                
            
 
-            // System.out.println("Total memory: " +  Runtime.getRuntime().totalMemory());
-            // System.out.println("used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
-            // System.out.println("% "+((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())*100)/(Runtime.getRuntime().totalMemory()));
-               
+           
             
             docId++;
             countBlockDocs++;
@@ -97,11 +88,8 @@ public class CorpusReader {
         if(corpus.isEmpty()){
             bufferedReader.close();
         }
-            /*
-                 The document should be processed to ignore any irrelevant sections and clean any existing tags
-            */
-
-            // returns the contents of each document in a collection (corpus)
+           
+        // returns the contents of each document in a collection (corpus)
         return corpus;
     }
        

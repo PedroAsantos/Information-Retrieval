@@ -23,7 +23,7 @@ public class Posting implements Serializable, Comparable<Posting>{
 
     @Override
     public String toString() {
-        return id + ":" + nOcurrences; //To change body of generated methods, choose Tools | Templates.
+        return id + ":" + nOcurrences; 
     }
 
     public int getId(){

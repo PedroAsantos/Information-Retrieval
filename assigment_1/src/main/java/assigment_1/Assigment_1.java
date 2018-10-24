@@ -49,11 +49,7 @@ public class Assigment_1 {
         columnNumbers[1]=12;
         columnNumbers[2]=13;
         
-        /*try {
-            System.out.println("impro: "+ ImprovedTokenizer.personalizedTokenize("@This is a improving very complex tokleniser for myself, right? car's pedro will be very good pedro@gmail.com(my mail [familiar])"));
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Assigment_1.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+      
        
         do{
             try {
@@ -81,13 +77,8 @@ public class Assigment_1 {
         invertedIndexer.writeLastBlock();
        
         
-        //Put each token's document in the index.
+       
          
-     /*   List<String> tokens;
-        for(int docId=0;docId<corpus.size();docId++){
-            tokens = SimpleTokenizer.tokenize(corpus.get(docId));
-            invertedIndexer.addToPostingList(tokens,docId);
-        }*/
         System.out.println("Merge Blocks");
         invertedIndexer.mergeBlocks();
         
@@ -96,9 +87,6 @@ public class Assigment_1 {
         System.out.println("ElapseTime->"+elapsedTime);
         
       
-        MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
-
-        //System.out.println("Max_heap: "+memBean.getNonHeapMemoryUsage(). / (1024 * 1024) + "mb");
         System.out.println("Vocabulary Size: "+AnaliseTokenize.getVocabularySize("indexer.txt"));
         System.out.println("Ten Terms Freq One:"+ AnaliseTokenize.getTenTermsFreqOne("indexer.txt"));
         System.out.println("Most freq terms: "+ AnaliseTokenize.getTermsWithHigherFreq("indexer.txt"));

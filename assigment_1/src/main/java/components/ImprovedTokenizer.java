@@ -25,61 +25,7 @@ public class ImprovedTokenizer {
     public ImprovedTokenizer(){
     }
     
-    /*
-    public static List<String> stemming(String documentLine){
-        SnowballStemmer stemmer = new englishStemmer();
-        stemmer.setCurrent(documentLine);         
-        
-        String[] temp = documentLine.split("\\s");
-        List<String> text = Arrays.asList(temp);
-        
-        List<String> stemmedList = new ArrayList<>();
-        
-        text.stream().forEach(s -> {
-            stemmer.setCurrent(s);
-            stemmer.stem();
-            stemmedList.add(stemmer.getCurrent());
-        });
-        
-        return stemmedList;
-    }
-    */
     
-    /*
-    public static List<String> stopwordFilter(String documentLine) throws FileNotFoundException{
-        Scanner scanner = new Scanner(new FileReader("stop.txt"));
-        List<String> stopwords = new ArrayList<String>();   
-        
-        
-        while(scanner.hasNextLine()){
-            String word = scanner.nextLine();
-            stopwords.add(word);
-        }
-
-        String[] words = stopwords.toArray(new String[0]);
-        
-        List<String> wordList = new ArrayList<>(Arrays.asList(words));
-        List<String> list = new ArrayList<>(Arrays.asList(documentLine));
-        
-        String[] filtered = list.stream().map(statement -> Arrays.asList(statement.split(" ")))
-                .map(listOfWords -> listOfWords.stream().filter(word -> !wordList.contains(word)).collect(Collectors.joining(" ")))
-                    .toArray(String[]::new);
-        
-        String filteredList = String.join(" ", filtered);
-        List<String> result = Arrays.asList(filteredList.split(" "));
-        
-        return result;
-    }
-    
-  
-    
-    public static List<String> specialCharacters(String documentLine){
-        List<String> result = Arrays.asList(filteredList.replaceAll("[^a-zA-Z 0-9]", "").replaceAll("\\s+"," ").split(" "));
-        
-        return result;
-    }
-    
-    */
     public static List<String> personalizedTokenize(String documentLine) throws FileNotFoundException{
         //stop words
        
