@@ -5,6 +5,8 @@
  */
 package components;
 
+import obj.EntryTermPost;
+import obj.Posting;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -32,11 +34,13 @@ public class Indexer {
     private Map<String,List<Posting>> invertedIndex;
     private int numberBlock;
     private PrintWriter writer=null;
+    private String indexerName;
     private static final int MAXSIZEBLOCKINDEX=30000;
     //dicionario in memory and localization of the postinglist
-    public Indexer(){
+    public Indexer(String indexerName){
         this.invertedIndex = new TreeMap<String,List<Posting>>();
         this.numberBlock=0;
+        this.indexerName=indexerName;
     }
     
     private void add(String term, Posting doc){
@@ -101,7 +105,7 @@ public class Indexer {
         
         try {
             
-            FileWriter fw = new FileWriter("indexer_"+numberBlock+".txt");
+            FileWriter fw = new FileWriter("indexer_"+indexerName+"_"+numberBlock+".txt");
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter writerBlock = new PrintWriter(bw);
            
@@ -138,7 +142,7 @@ public class Indexer {
         //inicialize file reader and buffer for each block file
         for (int block = 0; block < numberBlock; block++) {
             try {
-                fileReaders.add(new FileReader("indexer_"+block+".txt"));
+                fileReaders.add(new FileReader("indexer_"+ indexerName +"_"+block+".txt"));
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -225,7 +229,7 @@ public class Indexer {
     private void createIndexerFile(){
         FileWriter fw;
         try {
-            fw = new FileWriter("indexer.txt");
+            fw = new FileWriter("indexer_"+indexerName+".txt");
             BufferedWriter bw = new BufferedWriter(fw);
             writer = new PrintWriter(bw);
         } catch (IOException ex) {
