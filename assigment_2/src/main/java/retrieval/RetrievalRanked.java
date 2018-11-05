@@ -7,7 +7,9 @@ package retrieval;
 
 import components.ImprovedTokenizer;
 import components.SimpleTokenizer;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
@@ -22,10 +24,61 @@ import java.util.stream.Collectors;
  * @author rute
  */
 public class RetrievalRanked {
+    private RandomAccessFile raf;
+    private String fileName;
+    private long inicialBottom;
+    private HashMap<Character,CharacterInf> charBotTop;
     
+    public RetrievalRanked(String fileName){
+        this.fileName=fileName;
+        try {
+            this.raf = new RandomAccessFile(fileName, "rw");
+            try {
+                this.inicialBottom = raf.length();
+            } catch (IOException ex) {
+                Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        findBottomTop();
+    }
     
+    private void findBottomTop(){
+        charBotTop = new HashMap<>();
+        
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+            String line;
+            int lineNumber=0;
+            char currentChar='.';
+            CharacterInf infTemp;
+            while((line = bufferedReader.readLine()) != null){
+                if(lineNumber!=0 && currentChar!=line.charAt(0)){
+                    infTemp = charBotTop.get(currentChar);
+                    infTemp.setBottom(lineNumber-1);
+                    charBotTop.put(currentChar,infTemp);
+                }
+                if(!charBotTop.containsKey(line.charAt(0))){
+                    currentChar = line.charAt(0);
+                    charBotTop.put(currentChar,new CharacterInf(lineNumber));
+                }
+                lineNumber++;
+                
+            }
+            
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        charBotTop.forEach((k,v)->System.out.println("k: "+k+" v: "+v));
+        
+        
+    }
     
-    public static Map<Integer,Double> cosineScore(String query,boolean tokenizeSimple,String fileName){
+    public Map<Integer,Double> cosineScore(String query,boolean tokenizeSimple){
         Map<Integer,Double> score = new HashMap<>();
         
         List<String> queryTokens=null;
@@ -41,7 +94,7 @@ public class RetrievalRanked {
         }
 
         try {
-            RandomAccessFile raf = new RandomAccessFile(fileName, "rw");
+         
             String[] postingList;
             double weightTD;
             int docId;
@@ -62,7 +115,7 @@ public class RetrievalRanked {
             double normalization = Math.sqrt(logFreqs.values().stream().mapToDouble(lf-> lf*lf).sum());
             
             for(String token:queryTokens){
-                raf.seek(binarySearch(raf, token));
+                raf.seek(binarySearch(token));
                 postingList =  raf.readLine().split(",");
                 //TODO: calculate Wt,q
                 for(int i = 1;i<postingList.length;i++){
@@ -90,11 +143,14 @@ public class RetrievalRanked {
         
     }
     
-    private static Long binarySearch(RandomAccessFile file, String target) throws IOException{
+    private Long binarySearch(String target) throws IOException{
+       long startTime = System.currentTimeMillis();
        
-      
-        file.seek(0);
-        String termLine = file.readLine().split(",")[0];
+       long top=charBotTop.get(target.charAt(0)).getTop();
+       long bottom=charBotTop.get(target.charAt(0)).getBottom();
+        raf.seek(bottom);
+        String termLine = raf.readLine().split(",")[0];
+         //String termLine = raf.readLine();
         //first verification. the first line is skiped, so it is necessary to check before while loop.
         if (termLine == null || termLine.compareTo(target) >= 0) {
   
@@ -103,18 +159,21 @@ public class RetrievalRanked {
 
        
          //initial config to binary search
-        long top = 0;
-        long bottom = file.length();
+        //long top = 0;
+        //long bottom = inicialBottom;
+        
+        
         while (top <= bottom) {
             //find mid point
             long mid = top + (bottom - top) / 2;
             //go to mid poit
-            file.seek(mid);
+            raf.seek(mid);
             //to advance to the beginning of the line
-            file.readLine();
+            raf.readLine();
             //to read the line and save the term
-            termLine = file.readLine().split(",")[0];
-
+            termLine = raf.readLine().split(",")[0];
+            //termLine = raf.readLine();
+           
             if (termLine == null || termLine.compareTo(target) >= 0) {
                
                 bottom = mid - 1;
@@ -124,9 +183,15 @@ public class RetrievalRanked {
             }
         }
 
-        file.seek(top);
-        file.readLine();
-        return file.getFilePointer();
+        raf.seek(top);
+        raf.readLine();
+        
+        long stopTime = System.currentTimeMillis();
+        long elapsedTime = stopTime - startTime;
+        System.out.println("ElapseTime->"+elapsedTime+" target: "+target);
+        
+        
+        return raf.getFilePointer();
     }
     
 }

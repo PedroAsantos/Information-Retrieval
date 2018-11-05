@@ -90,9 +90,9 @@ public class Assigment_2 {
             invertedIndexer.mergeBlocks();
         }
         
-        
+        RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt");
         //retrival information -- search
-        RetrievalRanked.cosineScore("aaaaaa aaaaaahhhbr", true,"indexer_"+indexName[indexName.length-1]+".txt").forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        rr.cosineScore("aaaaaa aaaaaahhhbr", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
         System.out.println("end");
         
         
