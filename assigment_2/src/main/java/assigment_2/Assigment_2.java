@@ -32,11 +32,11 @@ public class Assigment_2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        long startTime = System.currentTimeMillis();
+        
         String filename;
         filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";  
         String[] indexName = filename.split("/");
-        
+        boolean SimpleTokenize = true;
         File f = new File("indexer_"+indexName[indexName.length-1]+".txt");
 
         if(!(f.exists() && !f.isDirectory())){
@@ -45,7 +45,7 @@ public class Assigment_2 {
             //filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Wireless_v1_00.tsv";
             CorpusReader corpusReader = new CorpusReader(filename);
 
-            boolean SimpleTokenize = true;
+           
 
             List<CorpusDocument> corpus = null;
             
@@ -92,7 +92,8 @@ public class Assigment_2 {
         
         RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt");
         //retrival information -- search
-        rr.cosineScore("aaaaaa aaaaaahhhbr", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        long startTime = System.currentTimeMillis();
+        rr.cosineScore("aaaand aaaaaa posterbr wrick annuaire zargo", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
         System.out.println("end");
         
         

@@ -10,28 +10,42 @@ package retrieval;
  * @author rute
  */
 public class CharacterInf {
-    private int bottom;
-    private final int top;
-    
-    public CharacterInf(int top){
+    private long bottom;
+    private final long top;
+    private int lineBottom;
+    private int lineTop;
+    public CharacterInf(long top, int lineTop){
         this.top=top;
+        this.lineTop=lineTop;
     }
     
-    public int getBottom(){
+    public long getBottom(){
         return bottom;
     }
     
-    public int getTop(){
+    public long getTop(){
         return top;
     }
+    public int getBottomLine(){
+        return lineBottom;
+    }
     
-    public void setBottom(int bottom){
+    public int getTopLine(){
+        return lineTop;
+    }
+    public void setBottom(long bottom){
         this.bottom=bottom;
+    }
+    public void setBottomLine(int lineBottom){
+            this.lineBottom=lineBottom;
+    }
+    public void setTopLine(int lineTop){
+            this.lineTop=lineTop;
     }
 
     @Override
     public String toString() {
-        return " Top: "+ top+" Bottom; "+bottom;//To change body of generated methods, choose Tools | Templates.
+        return " Top: "+ top+" Bottom; "+bottom+ " TopLine: "+ lineTop+" BottomLine; "+lineBottom + " dif: " + (lineBottom-lineTop);//To change body of generated methods, choose Tools | Templates.
     }
     
       
