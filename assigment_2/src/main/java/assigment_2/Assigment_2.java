@@ -89,11 +89,16 @@ public class Assigment_2 {
             System.out.println("Merge Blocks");
             invertedIndexer.mergeBlocks();
         }
+        int cacheSize = 10;
+        long timeToLive = 200;
+        long timerInterval = 500;
         
-        RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt");
+        RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt",cacheSize,timeToLive,timerInterval);
         //retrival information -- search
         long startTime = System.currentTimeMillis();
-        rr.cosineScore("aaaand aaaaaa posterbr wrick annuaire zargo", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        rr.cosineScore("voyagers reseat llegobr lesswould hotportgift eyesvery zzzzzzs ricky regird  realtorshe updetes uncharted perdi palmer pocketnecklace outerdiameter offbase minuterono notl trueinvictas torgold truein thoughsending wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        rr.cosineScore("voyagers zzzzzzs wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+               
         System.out.println("end");
         
         

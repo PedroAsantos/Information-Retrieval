@@ -5,6 +5,7 @@
  */
 package retrieval;
 
+import cache.MemoryCache;
 import components.ImprovedTokenizer;
 import components.SimpleTokenizer;
 import java.io.BufferedReader;
@@ -34,8 +35,8 @@ public class RetrievalRanked {
     private HashMap<Character,CharacterInf> charBotTop;
     private List<BlockIndex> blockBotTop;
     private final int BLOCK_SIZE=2500;
-    
-    public RetrievalRanked(String fileName){
+    private  MemoryCache<String,String> cache;
+    public RetrievalRanked(String fileName,int cacheSize, long timeToLive, long timerInterval){
         this.fileName=fileName;
         try {
             this.raf = new RandomAccessFile(fileName, "r");
@@ -44,7 +45,8 @@ public class RetrievalRanked {
         }
         //findBottomTopByLetter();
         //findBottomTopBlock();
-        
+        cache = new MemoryCache(timeToLive,timerInterval,cacheSize);
+
        
         generateBlocks();
          
@@ -145,7 +147,9 @@ public class RetrievalRanked {
         } catch (IOException ex) {
             Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+        for (BlockIndex block : blockBotTop) {
+            System.out.println(block);
+        }
     }
     
     private void generateBlocks(){
@@ -310,7 +314,8 @@ public class RetrievalRanked {
             }
         }
 
-        String[] postingList;
+        String postingList;
+        String[] postingListArray;
         double weightTD;
         int docId;
         //counting the number of each term that happens in the query
@@ -327,26 +332,29 @@ public class RetrievalRanked {
             //raf.seek(binarySearch(token));
             //postingList =  raf.readLine().split(",");
             long startTime = System.currentTimeMillis();
-            postingList=readBlockFromFile(token).split(",");
+            if((postingList = cache.get(token))!=null){
+                  System.out.println("From memory");
+                  postingListArray = postingList.split(",");
+            }else{
+                postingList = readBlockFromFile(token);
+                postingListArray=postingList.split(",");
+                cache.put(token, postingList);
+            }
+            
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;
             System.out.println("From block file. Search ElapseTime->"+elapsedTime+" target: "+ token);
-            /*long startTime = System.currentTimeMillis();
-            postingList=sequentialSearch(token).split(",");
-            long stopTime = System.currentTimeMillis();
-            long elapsedTime = stopTime - startTime;
-            System.out.println("Se. Search ElapseTime->"+elapsedTime+" target: "+ token);*/
-            //TODO: calculate Wt,q
-            for(int i = 1;i<postingList.length;i++){
-                weightTD = Double.parseDouble(postingList[i].split(":")[1].replaceAll("\\s+",""));
-                docId = Integer.parseInt(postingList[i].split(":")[0].replaceAll("\\s+",""));
-                if(score.containsKey(docId)){
-                    score.put(docId, score.get(docId)+(weightTD*(logFreqs.get(token)/normalization)));
-                }else{
-                    score.put(docId,weightTD*(weightTD*(logFreqs.get(token)/normalization)));
+            if(postingListArray!=null){
+                for(int i = 1;i<postingListArray.length;i++){
+                    weightTD = Double.parseDouble(postingListArray[i].split(":")[1].replaceAll("\\s+",""));
+                    docId = Integer.parseInt(postingListArray[i].split(":")[0].replaceAll("\\s+",""));
+                    if(score.containsKey(docId)){
+                        score.put(docId, score.get(docId)+(weightTD*(logFreqs.get(token)/normalization)));
+                    }else{
+                        score.put(docId,weightTD*(weightTD*(logFreqs.get(token)/normalization)));
+                    }
                 }
             }
-            
         }
         
         
@@ -380,7 +388,7 @@ public class RetrievalRanked {
         return null;
     }
     */
-     private Long binarySearch(String target) throws IOException{
+  /*   private Long binarySearch(String target) throws IOException{
        long startTime = System.currentTimeMillis();
        BlockIndex block = getBlock(target) ;
        long top = block.getTopLineBytes(); 
@@ -435,7 +443,7 @@ public class RetrievalRanked {
         
         
         return raf.getFilePointer();
-    }
+    }*/
      
      
  /*   private String sequentialSearch(String target){
