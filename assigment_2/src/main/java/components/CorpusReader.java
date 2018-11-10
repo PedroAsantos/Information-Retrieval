@@ -7,9 +7,12 @@ package components;
 
 import obj.CorpusDocument;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -92,12 +95,34 @@ public class CorpusReader {
         }      
         if(corpus.isEmpty()){
             bufferedReader.close();
+            writeToFileTotalNumberOfDocs();
         }
-           
+       
         // returns the contents of each document in a collection (corpus)
         return corpus;
     }
-       
+    
+    private void writeToFileTotalNumberOfDocs(){
+        FileWriter fw = null;
+        PrintWriter writeLine=null;
+        try {
+            fw = new FileWriter("indexer_number_of_docs.txt");
+            BufferedWriter bw = new BufferedWriter(fw);
+            writeLine = new PrintWriter(bw);
+           
+            writeLine.println("numberOfDocs:"+docId);
+        } catch (IOException ex) {
+            Logger.getLogger(CorpusReader.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                writeLine.close();
+                fw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(CorpusReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+           
 }
     
     

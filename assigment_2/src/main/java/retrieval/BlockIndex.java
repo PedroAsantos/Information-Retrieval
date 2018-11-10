@@ -5,11 +5,13 @@
  */
 package retrieval;
 
+import java.io.Serializable;
+
 /**
  *
  * @author rute
  */
-public class BlockIndex {
+public class BlockIndex implements Serializable {
     private String topString;
     private String bottomString;
     private int block;

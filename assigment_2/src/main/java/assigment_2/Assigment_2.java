@@ -11,8 +11,10 @@ import components.CorpusReader;
 import components.ImprovedTokenizer;
 import components.Indexer;
 import components.SimpleTokenizer;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -36,7 +38,7 @@ public class Assigment_2 {
         String filename;
         filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";  
         String[] indexName = filename.split("/");
-        boolean SimpleTokenize = true;
+        boolean simpleTokenize = false;
         File f = new File("indexer_"+indexName[indexName.length-1]+".txt");
 
         if(!(f.exists() && !f.isDirectory())){
@@ -46,7 +48,7 @@ public class Assigment_2 {
             CorpusReader corpusReader = new CorpusReader(filename);
 
            
-
+            
             List<CorpusDocument> corpus = null;
             
             Indexer invertedIndexer = new Indexer(indexName[indexName.length-1]);
@@ -68,7 +70,7 @@ public class Assigment_2 {
                     System.out.println(e.getMessage());
                 }
                 if (!corpus.isEmpty()) {
-                    if (SimpleTokenize) {
+                    if (simpleTokenize) {
                         corpus.stream().forEach(x -> {
                             invertedIndexer.addToPostingList(SimpleTokenizer.tokenize(x.getCorpus()), x.getDocId());
                         });
@@ -88,17 +90,21 @@ public class Assigment_2 {
 
             System.out.println("Merge Blocks");
             invertedIndexer.mergeBlocks();
-        }
+        }   
         int cacheSize = 10;
         long timeToLive = 200;
         long timerInterval = 500;
         
-        RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt",cacheSize,timeToLive,timerInterval);
+        
+        
+        
+        
+        
+        RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt",readFromFileTotalNumberOfDocuments(),cacheSize,timeToLive,timerInterval);
         //retrival information -- search
         long startTime = System.currentTimeMillis();
-        rr.cosineScore("voyagers reseat llegobr lesswould hotportgift eyesvery zzzzzzs ricky regird  realtorshe updetes uncharted perdi palmer pocketnecklace outerdiameter offbase minuterono notl trueinvictas torgold truein thoughsending wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
-        rr.cosineScore("voyagers zzzzzzs wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew voyagers zzzzzzs wellversed waterproofscrew", true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
-               
+        rr.cosineScore("es266a2c1907935", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+                    
         System.out.println("end");
         
         
@@ -115,4 +121,27 @@ public class Assigment_2 {
        
     }
     
+    
+    public static int readFromFileTotalNumberOfDocuments(){
+         BufferedReader bufferedReader = null;
+         String line=null;
+        try {
+            bufferedReader = new BufferedReader(new FileReader("indexer_number_of_docs.txt"));
+            
+            if((line = bufferedReader.readLine()) != null){
+                line = line.split(":")[1];
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Assigment_2.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Assigment_2.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                bufferedReader.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Assigment_2.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+         return Integer.parseInt(line);
+    }
 }
