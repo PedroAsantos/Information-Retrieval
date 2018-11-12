@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  *
- * @author rute
+ * @author Pedro Santos, 76532 /  Beatriz Coronha 92210    
  */
 class Node<K>{
     K key;
@@ -59,7 +59,6 @@ public class LRUCache<K> {
  
     public void remove(K key){
         if(map.containsKey(key)){
-            System.out.println("remove");
             Node n = map.get(key);
             removeNode(n);    
             map.remove(key);
@@ -80,7 +79,7 @@ public class LRUCache<K> {
         }
     }
  
-    public void setHead(Node n){
+    private void setHead(Node n){
         n.next = head;
         n.pre = null;
  

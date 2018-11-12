@@ -5,7 +5,7 @@
  */
 package components;
 
-import obj.CorpusDocument;
+import obj_indexer.CorpusDocument;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -19,14 +19,14 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author rute
+ * @author Pedro Santos, 76532 /  Beatriz Coronha 92210    
  */
 public class CorpusReader {
     private FileReader fileReader;
     private BufferedReader bufferedReader;
     private int docId=0;
     private static final int MAXIMUN_DOCS=10000;
-  //  private static final int MAXIMUN_DOCS=1;
+
 
     public CorpusReader(String fileName){
         try {
@@ -39,9 +39,9 @@ public class CorpusReader {
        
     /**
      *
-     * @param fileNames
-     * @param columnsNumbers
-     * @return 
+     * 
+     * @param columnsNumbers The columns that it is to read in the file tsv
+     * @return the documents read in a list. Each position of the list is a document
      * @throws java.io.FileNotFoundException 
     */
     public List<CorpusDocument> corpusReader(int[] columnsNumbers) throws FileNotFoundException, IOException{
@@ -64,11 +64,7 @@ public class CorpusReader {
             if(countBlockDocs==MAXIMUN_DOCS){
                return corpus;
             }
-             //to delete
-           /* if(docId==5){
-                corpus.clear();
-                return corpus;
-            }*/
+            
             //split line
             currentLineTokens = line.split("\t");
                 
@@ -101,7 +97,10 @@ public class CorpusReader {
         // returns the contents of each document in a collection (corpus)
         return corpus;
     }
-    
+    /**
+     * 
+     * Writes on the file indexer_number_of_docs.txt file the total number of documents 
+     */
     private void writeToFileTotalNumberOfDocs(){
         FileWriter fw = null;
         PrintWriter writeLine=null;

@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 /**
  *
- * @author rute
+ * @author Pedro Santos, 76532 /  Beatriz Coronha 92210    
  */
 public class BlockIndex implements Serializable {
     private String topString;

@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  *
- * @author rute
+ * @author Pedro Santos, 76532 /  Beatriz Coronha 92210    
  */
 public class MemoryCache<K,T> {
     
@@ -45,15 +45,13 @@ public class MemoryCache<K,T> {
     
      public void put(K key, T value) {
         synchronized (cacheMap) {
-            System.out.println("put in memory"+cacheMap.size());
             cacheMap.put(key, new ObjectInCache(value));
         }
     }
  
-    @SuppressWarnings("unchecked")
+   // @SuppressWarnings("unchecked")
     public T get(K key) {
         synchronized (cacheMap) {
-            System.out.println("get in memory");
             ObjectInCache c = (ObjectInCache) cacheMap.get(key);
  
             if (c == null)
@@ -67,7 +65,6 @@ public class MemoryCache<K,T> {
  
     public void remove(K key) {
         synchronized (cacheMap) {
-            System.out.println("remove in memory");
             cacheMap.remove(key);
         }
     }
@@ -78,10 +75,8 @@ public class MemoryCache<K,T> {
         }
     }
  
-    @SuppressWarnings("unchecked")
+  //  @SuppressWarnings("unchecked")
     public void cleanup() {
-        System.out.println("Clean Cache!");
-        System.out.println("cache size: "+ cacheMap.size());
         long now = System.currentTimeMillis();
         ArrayList<K> deleteKey = null;
  
@@ -94,22 +89,19 @@ public class MemoryCache<K,T> {
             
             while (itr.hasNext()) {
                 key = (Map.Entry) itr.next();
-                System.out.println("Key->"+key.getKey());
                 c = (ObjectInCache) cacheMap.get(key.getKey());
-                System.out.println("c.getLastAccessed()->"+c.getLastAccessed());
+                
                 if (c != null && (now > (timeToLive + c.getLastAccessed()))) {
-                    System.out.println("add to delete");
                     deleteKey.add((K) key.getKey());
                 }
                 itr.remove();
             }
         }
-        System.out.println("cache size: "+ cacheMap.size());
+        
         for (K key : deleteKey) {
             synchronized (cacheMap) {
                 cacheMap.remove(key);
             }
-        System.out.println("cache size: "+ cacheMap.size());
             Thread.yield();
         }
     }

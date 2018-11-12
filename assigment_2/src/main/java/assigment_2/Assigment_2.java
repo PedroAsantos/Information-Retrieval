@@ -6,7 +6,7 @@
 package assigment_2;
 
 import components.AnaliseTokenize;
-import obj.CorpusDocument;
+import obj_indexer.CorpusDocument;
 import components.CorpusReader;
 import components.ImprovedTokenizer;
 import components.Indexer;
@@ -34,9 +34,9 @@ public class Assigment_2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        
+        long startTimeIndexing = System.currentTimeMillis();
         String filename;
-        filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";  
+        filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Wireless_v1_00.tsv";  
         String[] indexName = filename.split("/");
         boolean simpleTokenize = false;
         File f = new File("indexer_"+indexName[indexName.length-1]+".txt");
@@ -91,6 +91,11 @@ public class Assigment_2 {
             System.out.println("Merge Blocks");
             invertedIndexer.mergeBlocks();
         }   
+        
+        long stopTimeIndexing = System.currentTimeMillis();
+        long elapsedTimeIndexing = stopTimeIndexing - startTimeIndexing;
+        System.out.println("ElapseTime Indexing->"+elapsedTimeIndexing);
+        
         int cacheSize = 10;
         long timeToLive = 200;
         long timerInterval = 500;
@@ -101,16 +106,18 @@ public class Assigment_2 {
         
         
         RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt",readFromFileTotalNumberOfDocuments(),cacheSize,timeToLive,timerInterval);
+        rr.generateBlocks();
+        
         //retrival information -- search
-        long startTime = System.currentTimeMillis();
+        long startTimeSearch = System.currentTimeMillis();
         rr.cosineScore("es266a2c1907935", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
                     
         System.out.println("end");
         
         
-        long stopTime = System.currentTimeMillis();
-        long elapsedTime = stopTime - startTime;
-        System.out.println("ElapseTime->"+elapsedTime);
+        long stopTimeSearch = System.currentTimeMillis();
+        long elapsedTimeSearch = stopTimeSearch - startTimeSearch;
+        System.out.println("ElapseTime Search->"+elapsedTimeSearch);
         
         
         

@@ -7,9 +7,9 @@ package cache;
 
 /**
  *
- * @author rute
+ * @author Pedro Santos, 76532 /  Beatriz Coronha 92210    
  */
-public class ObjectInCache<K, T> {
+public class ObjectInCache<T> {
     private long lastAccessed = System.currentTimeMillis();
     private T value;
 

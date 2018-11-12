@@ -20,23 +20,21 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+
 
 /**
  *
  * @author rute
  */
 public class RetrievalRanked {
-    private RandomAccessFile raf;
-    private String fileName;
-    private HashMap<Character,CharacterInf> charBotTop;
+    //private RandomAccessFile raf;
+    private final String fileName;
     private List<BlockIndex> blockBotTop;
     private final int BLOCK_SIZE=2500;
     private final int totalDocs;
@@ -45,22 +43,19 @@ public class RetrievalRanked {
     public RetrievalRanked(String fileName,int totalDocs,int cacheSize, long timeToLive, long timerInterval){
         this.fileName=fileName;
         this.totalDocs=totalDocs;
-        try {
+       /* try {
             this.raf = new RandomAccessFile(fileName, "r");
         } catch (FileNotFoundException ex) {
             Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
+       
         //findBottomTopByLetter();
         //findBottomTopBlock();
         cache = new MemoryCache(timeToLive,timerInterval,cacheSize);
-
-       
-        generateBlocks();
-         
     }
     
  
-    private void generateBlocks(){
+    public void generateBlocks(){
         File f = new File("indexer_sub_block0.txt");
         
         if(!(f.exists() && !f.isDirectory())){
@@ -111,16 +106,16 @@ public class RetrievalRanked {
                while((line = bufferedReader.readLine()) != null){
                     lastLine=line;
                }
-               System.out.println("lastline: "+lastLine);
+               
                writerBlock.close();
                bufferedReader.close();
                blockTempIndex.setBottomString(lastLine.split(",")[0]);
                //blockTempIndex.setBottomLine(lineNumber);
                blockBotTop.add(blockTempIndex);
                
-               for(BlockIndex block : blockBotTop){
+             /*  for(BlockIndex block : blockBotTop){
                 System.out.println(block);
-               }
+               }*/
                serializeBlocksArray();
 
            } catch (IOException ex) {
@@ -225,19 +220,18 @@ public class RetrievalRanked {
             //postingList =  raf.readLine().split(",");
             long startTime = System.currentTimeMillis();
             if((postingList = cache.get(token))!=null){
-                  System.out.println("From memory");
                   postingListArray = postingList.split(",");
             }else{
                 postingList = readBlockFromFile(token);
                 if(postingList!=null){
                     postingListArray=postingList.split(",");
                     cache.put(token, postingList);
-                }   
+                }
             }
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;
-            System.out.println("From block file. Search ElapseTime->"+elapsedTime+" target: "+ token);
-            if(postingListArray!=null){
+            //System.out.println("From block file. Search ElapseTime->"+elapsedTime+" target: "+ token);
+            if(postingList!=null){
                 idf=Math.log10(totalDocs/(postingListArray.length-1));
                 for(int i = 1;i<postingListArray.length;i++){
                     weightTD = Double.parseDouble(postingListArray[i].split(":")[1].replaceAll("\\s+",""));
@@ -245,7 +239,7 @@ public class RetrievalRanked {
                     if(score.containsKey(docId)){
                         score.put(docId, score.get(docId)+(weightTD*idf));
                     }else{
-                        score.put(docId,weightTD*(weightTD*idf));
+                        score.put(docId,(weightTD*idf));
                     }
                 }
             }
@@ -253,6 +247,17 @@ public class RetrievalRanked {
            
         return score;   
     }
+    
+    /*
+    ###########################################################################################
+    ###########################################################################################
+                 THE NEXT COMMENT CODE WAS DONE FOR OTHER VERSIONS NOT SO EFFICIENT
+    ###########################################################################################
+    ###########################################################################################
+    */
+    
+    
+    
       /* private void findBottomTopBlock(){
         blockBotTop = new ArrayList<>();
         

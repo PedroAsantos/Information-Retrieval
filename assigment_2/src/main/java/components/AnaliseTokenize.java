@@ -5,7 +5,7 @@
  */
 package components;
 
-import obj.TermFreqHigher;
+import obj_indexer.TermFreqHigher;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
