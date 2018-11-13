@@ -42,7 +42,11 @@ public class Indexer {
         this.numberBlock=0;
         this.indexerName=indexerName;
     }
-    
+      /**
+    * Function to add to the indexer a posting of a term
+    * @param term the term that will be add a posting or if the term is not in the index will be created. 
+    * @param doc the posting
+    */
     private void add(String term, Posting doc){
         
         if(invertedIndex.size()==MAXSIZEBLOCKINDEX){
@@ -63,7 +67,12 @@ public class Indexer {
         }
        
     }
-    
+     /**
+    * Function to add the tokens of the document to the indexer.
+    * @param documentString the tokens of the document to add to the indexer.
+    * @param documentId the id of the document
+    *  
+    */
     public boolean addToPostingList(List<String> documentString,int documentId){
         //add words of this document to index.     
         

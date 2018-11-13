@@ -33,12 +33,13 @@ class Node<K>{
 
 public class LRUCache<K> {
     private int capacity;
-    private HashMap<K, Node> map = new HashMap<>();
+    private HashMap<K, Node> map;
     private Node head=null;
     private Node end=null;
  
     public LRUCache(int capacity) {
         this.capacity = capacity;
+        this.map = new HashMap<>();
     }
     public int size(){
         return map.size();
@@ -108,7 +109,6 @@ public class LRUCache<K> {
             }else{
                 setHead(created);
             }    
- 
             map.put(key, created);
         }
     }

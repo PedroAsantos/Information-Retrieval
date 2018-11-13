@@ -18,7 +18,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import retrieval.RetrievalRanked;
@@ -96,7 +98,7 @@ public class Assigment_2 {
         long elapsedTimeIndexing = stopTimeIndexing - startTimeIndexing;
         System.out.println("ElapseTime Indexing->"+elapsedTimeIndexing);
         
-        int cacheSize = 10;
+        int cacheSize = 30;
         long timeToLive = 200;
         long timerInterval = 500;
         
@@ -106,28 +108,32 @@ public class Assigment_2 {
         
         
         RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt",readFromFileTotalNumberOfDocuments(),cacheSize,timeToLive,timerInterval);
+        
+        //generate block index
         rr.generateBlocks();
         
-        //retrival information -- search
-        long startTimeSearch = System.currentTimeMillis();
-        rr.cosineScore("es266a2c1907935", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
-                    
-        System.out.println("end");
+        //testeRetrieval(indexName,cacheSize,timeToLive,timerInterval);
         
+        long startTimeSearch = System.currentTimeMillis();
+        //search to receive in a hashmap the results   
+        rr.cosineScore("Wirelle", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
         
         long stopTimeSearch = System.currentTimeMillis();
         long elapsedTimeSearch = stopTimeSearch - startTimeSearch;
         System.out.println("ElapseTime Search->"+elapsedTimeSearch);
-        
-        
-        
-      //assigment_1 exercise
-      //  System.out.println("Vocabulary Size: "+AnaliseTokenize.getVocabularySize("indexer.txt"));
-      //  System.out.println("Ten Terms Freq One:"+ AnaliseTokenize.getTenTermsFreqOne("indexer.txt"));
-      //  System.out.println("Most freq terms: "+ AnaliseTokenize.getTermsWithHigherFreq("indexer.txt"));
+       
+       //search to receive the 10 elements with a higher score in a list 
+        System.out.println(rr.retrievalTop("offo", simpleTokenize,10));
+
+   
        
     }
-    
+    /*
+    *
+    * Function to read from file the total number of documents to be used in the instanciation of Retrieval Ranked Object.
+    *
+    *
+    */
     
     public static int readFromFileTotalNumberOfDocuments(){
          BufferedReader bufferedReader = null;
@@ -151,4 +157,41 @@ public class Assigment_2 {
         }
          return Integer.parseInt(line);
     }
+    //function to test retrival with cache empty and then the second time with all the terms in cache
+    public static void testeRetrieval(String[] indexName,int cacheSize,long timeToLive,long timerInterval){
+         RetrievalRanked rr = new RetrievalRanked("indexer_"+indexName[indexName.length-1]+".txt",readFromFileTotalNumberOfDocuments(),cacheSize,timeToLive,timerInterval);
+        rr.generateBlocks();
+        
+        String[] arrayToTest= new String[] {"offmedhigh","offmusicpow","offnow","optimize","oterhwis","othercool","otherc","otheral","otte","ottercaa","es266a2c1907935","butera","butelsoftwar","comgpproductb00nfyjc7kref","zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz","zz1","x693","oramazon","x6xxx","x710s","xm84hc"};
+        List<Long> results = new ArrayList<>();
+       
+        for (int i = 0; i < arrayToTest.length; i++) {
+            long startTimeSearch = System.currentTimeMillis();
+            
+            rr.cosineScore(arrayToTest[i], false).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+            
+            long stopTimeSearch = System.currentTimeMillis();
+            long elapsedTimeSearch = stopTimeSearch - startTimeSearch;
+            results.add(elapsedTimeSearch);
+            System.out.println("ElapseTime Search->"+elapsedTimeSearch);
+        }
+        
+        System.out.println("media:"+results.stream().mapToLong(Long::longValue).sum()/results.size());
+        results.clear();
+        
+          for (int i = 0; i < arrayToTest.length; i++) {
+            long startTimeSearch = System.currentTimeMillis();
+            
+            rr.cosineScore(arrayToTest[i], false).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+            
+            long stopTimeSearch = System.currentTimeMillis();
+            long elapsedTimeSearch = stopTimeSearch - startTimeSearch;
+            results.add(elapsedTimeSearch);
+            System.out.println("ElapseTime Search->"+elapsedTimeSearch);
+        }
+        
+        System.out.println("AVARAGE TIME:"+results.stream().mapToLong(Long::longValue).sum()/results.size());
+        results.clear();
+    }
+    
 }

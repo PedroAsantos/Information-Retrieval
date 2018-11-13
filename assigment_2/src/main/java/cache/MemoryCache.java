@@ -81,6 +81,7 @@ public class MemoryCache<K,T> {
         ArrayList<K> deleteKey = null;
  
         synchronized (cacheMap) {
+            System.out.println("clean");
             Iterator<Map.Entry<K, Node>> itr = cacheMap.mapIterator();
  
             deleteKey = new ArrayList<K>((cacheMap.size() / 2) + 1);

@@ -21,6 +21,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,10 @@ public class RetrievalRanked {
         cache = new MemoryCache(timeToLive,timerInterval,cacheSize);
     }
     
- 
+    /**
+    * Function to divide the index in several blocks.
+    *
+    */
     public void generateBlocks(){
         File f = new File("indexer_sub_block0.txt");
         
@@ -126,7 +130,11 @@ public class RetrievalRanked {
            deserializeBlocksArray();
         }   
     }
-    
+    /**
+    * Function to deserialize the array that contains the information of each block saved in the object BlockIndex.
+    *
+    *
+    */
     private void deserializeBlocksArray(){
          try {
              try (FileInputStream fileIn = new FileInputStream("blockArray.ser")) {
@@ -141,7 +149,11 @@ public class RetrievalRanked {
          Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, c);
       }
     }
-    
+     /*
+    * Function to serialize the array that contains the information of each block saved in the object BlockIndex.
+    *
+    *
+    */
     private void serializeBlocksArray(){
          try {
              try (FileOutputStream fileOut = new FileOutputStream("blockArray.ser")) {
@@ -154,6 +166,12 @@ public class RetrievalRanked {
          i.printStackTrace();
       }
     }
+    /** 
+    *
+    * Function to read a block of the index and find the term to return the posting list
+    * @param  target the term that it is to find in the index
+    * @return      the line that contains the term
+    */
     private String readBlockFromFile(String target){
         BlockIndex block = getBlock(target);
         
@@ -183,7 +201,13 @@ public class RetrievalRanked {
         return null;
        
     }
-    
+    /**
+    * Function to know in which block is a given term.
+    *
+    * @param  term the term that it is to know in which block is
+    * @return   the object that contains the block in which the term is. 
+    *
+    */
     private BlockIndex getBlock(String term){
         for(BlockIndex block : blockBotTop){
             if(block.getTopString().compareTo(term)<=0 && term.compareTo(block.getBottomString())<=0){
@@ -193,7 +217,38 @@ public class RetrievalRanked {
         return null;
     }
  
-    
+     /**
+    * Function to get nResults and the by order
+    *
+    * @param  query the query to retrieve
+    * @param  tokenizeSimple boolean value to know if it is to use the simple or the improved tokenizer
+    * @param nResults the maximum amount of results
+    * @return ordered list with the scores and id of documents
+    *
+    *
+    */
+    public List<ScoreRetrieval> retrievalTop(String query,boolean tokenizeSimple,int nResults){
+        Map<Integer,Double> result = cosineScore(query,tokenizeSimple);
+        List<ScoreRetrieval> scores = new ArrayList<>(); 
+         
+        result.forEach((k,v)-> scores.add(new ScoreRetrieval(k,v)));
+        Collections.sort(scores);
+        
+        if(nResults>scores.size()){
+            nResults=scores.size();
+        }
+        
+        return scores.subList(0, nResults);
+        
+    }
+     /**
+    * Function to know in which block is a given term.
+    *
+    * @param  query the query to retrieve
+    * @param  tokenizeSimple boolean value to know if it is to use the simple or the improved tokenizer
+    * @return  a map. The key is the id of document and the value is the score
+    *
+    */
     public Map<Integer,Double> cosineScore(String query,boolean tokenizeSimple){
         Map<Integer,Double> score = new HashMap<>();
         
@@ -216,9 +271,8 @@ public class RetrievalRanked {
         double idf;
        
         for(String token:queryTokens){
-            //raf.seek(binarySearch(token));
-            //postingList =  raf.readLine().split(",");
-            long startTime = System.currentTimeMillis();
+                  
+            //check if the term is in memory
             if((postingList = cache.get(token))!=null){
                   postingListArray = postingList.split(",");
             }else{
@@ -228,9 +282,8 @@ public class RetrievalRanked {
                     cache.put(token, postingList);
                 }
             }
-            long stopTime = System.currentTimeMillis();
-            long elapsedTime = stopTime - startTime;
-            //System.out.println("From block file. Search ElapseTime->"+elapsedTime+" target: "+ token);
+           
+            //calculating and save score
             if(postingList!=null){
                 idf=Math.log10(totalDocs/(postingListArray.length-1));
                 for(int i = 1;i<postingListArray.length;i++){
