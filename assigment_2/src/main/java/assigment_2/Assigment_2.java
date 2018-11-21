@@ -38,9 +38,9 @@ public class Assigment_2 {
     public static void main(String[] args) {
         long startTimeIndexing = System.currentTimeMillis();
         String filename;
-        filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Wireless_v1_00.tsv";  
+        filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";  
         String[] indexName = filename.split("/");
-        boolean simpleTokenize = false;
+        boolean simpleTokenize = true;
         File f = new File("indexer_"+indexName[indexName.length-1]+".txt");
 
         if(!(f.exists() && !f.isDirectory())){
@@ -116,17 +116,18 @@ public class Assigment_2 {
         
         long startTimeSearch = System.currentTimeMillis();
         //search to receive in a hashmap the results   
-        rr.cosineScore("Wirelle", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
-        
+        rr.cosineScore("faas", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+       
         long stopTimeSearch = System.currentTimeMillis();
         long elapsedTimeSearch = stopTimeSearch - startTimeSearch;
         System.out.println("ElapseTime Search->"+elapsedTimeSearch);
        
        //search to receive the 10 elements with a higher score in a list 
-        System.out.println(rr.retrievalTop("offo", simpleTokenize,10));
-
-   
-       
+        System.out.println(rr.retrievalTop("faas", simpleTokenize,10));
+        System.out.println("phase search");
+        rr.cosineScorePhraseSearch("health bussines",true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        rr.cosineScorePhraseSearch("anticipate. Silicone band seems cheap",true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        rr.cosineScorePhraseSearch(" couple hours before",true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
     }
     /*
     *

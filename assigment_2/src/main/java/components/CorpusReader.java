@@ -76,18 +76,17 @@ public class CorpusReader {
                 lineToSave+="\t";
               }
             }
-               
-         
-            corpus.add(new CorpusDocument(lineToSave,docId));
+            //pode dar erro
+            if(!lineToSave.equals("")){
+                docId++;
+                countBlockDocs++;
+                corpus.add(new CorpusDocument(lineToSave,docId));
+            }
            
             lineToSave="";
                
-           
-
-           
+                    
             
-            docId++;
-            countBlockDocs++;
         }      
         if(corpus.isEmpty()){
             bufferedReader.close();

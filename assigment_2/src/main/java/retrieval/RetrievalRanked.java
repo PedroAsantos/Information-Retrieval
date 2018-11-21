@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import obj_indexer.Posting;
 
 
 /**
@@ -40,7 +41,7 @@ public class RetrievalRanked {
     private final int BLOCK_SIZE=2500;
     private final int totalDocs;
     private final MemoryCache<String,String> cache;
-    
+   
     public RetrievalRanked(String fileName,int totalDocs,int cacheSize, long timeToLive, long timerInterval){
         this.fileName=fileName;
         this.totalDocs=totalDocs;
@@ -77,7 +78,7 @@ public class RetrievalRanked {
                PrintWriter writerBlock = new PrintWriter(bw);
 
                if((line = bufferedReader.readLine()) != null){
-                   blockTempIndex = new BlockIndex(line.split(",")[0], numberBlock);
+                   blockTempIndex = new BlockIndex(line.split(";")[0], numberBlock);
                    lineNumber++;
                    writerBlock.println(line);
                }
@@ -86,7 +87,7 @@ public class RetrievalRanked {
                    writerBlock.println(line);
                    lineNumber++;
                    if(lineNumber % BLOCK_SIZE==0){
-                       blockTempIndex.setBottomString(line.split(",")[0]);
+                       blockTempIndex.setBottomString(line.split(";")[0]);
                        //blockTempIndex.setBottomLine(lineNumber);
                        blockBotTop.add(blockTempIndex);
 
@@ -98,7 +99,7 @@ public class RetrievalRanked {
                        if((line = bufferedReader.readLine()) != null){
                            writerBlock.println(line);
                            lineNumber++;
-                           blockTempIndex = new BlockIndex(line.split(",")[0],numberBlock);   
+                           blockTempIndex = new BlockIndex(line.split(";")[0],numberBlock);   
                        }
                    }
 
@@ -113,7 +114,7 @@ public class RetrievalRanked {
                
                writerBlock.close();
                bufferedReader.close();
-               blockTempIndex.setBottomString(lastLine.split(",")[0]);
+               blockTempIndex.setBottomString(lastLine.split(";")[0]);
                //blockTempIndex.setBottomLine(lineNumber);
                blockBotTop.add(blockTempIndex);
                
@@ -179,16 +180,16 @@ public class RetrievalRanked {
             return null;
         }
         int numberBlock = block.getBlock();
-
+ 
         FileReader fileReader;
         BufferedReader bufferedReader;
         String line;
         try {
             fileReader = new FileReader("indexer_sub_block"+numberBlock+".txt");
             bufferedReader = new BufferedReader(fileReader);
-            
+          
              while((line = bufferedReader.readLine()) != null) {
-               if (line.split(",")[0].compareTo(target) == 0) {
+               if (line.split(";")[0].compareTo(target) == 0) {
                     return line;
                }
              }
@@ -241,6 +242,169 @@ public class RetrievalRanked {
         return scores.subList(0, nResults);
         
     }
+    private List<ScoreRetrievalPhrase>  checkIfTermIsNextToOther(int docIDBase, List<Posting> termPosting,int position, int DIF,int level){
+        
+        List<ScoreRetrievalPhrase> listPrhaseSearchDocsResult = new ArrayList<>();
+        System.out.println(position+DIF);
+         for(Posting pos : termPosting){
+              if(pos.getId()== docIDBase){
+                    List<Integer> positionsBase = pos.getPositionList();
+
+                    
+                    if(positionsBase.contains(position+DIF)){
+                        listPrhaseSearchDocsResult.add(new ScoreRetrievalPhrase(level,pos));
+                    }
+                    
+              }else if(pos.getId()> docIDBase){
+                  break;
+              }
+         }
+         
+         
+        return listPrhaseSearchDocsResult;
+        
+    }
+    
+    public Map<Integer,Double> cosineScorePhraseSearch(String query,boolean tokenizeSimple){
+        Map<Integer,Double> score = new HashMap<>();
+        //create queu where i put the list of each document
+        List<String> queryTokens=null;
+        
+        if(tokenizeSimple){
+            queryTokens = SimpleTokenizer.tokenize(query);
+        }else{
+            try {
+                queryTokens = ImprovedTokenizer.personalizedTokenize(query);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        List<List<Posting>> listTermsPosTingList = new ArrayList<>(); 
+                
+        String postingList="";
+        String[] postingListArray=null;
+        double weightTD;
+        int docId;
+        double idf;
+       
+        for(String token:queryTokens){
+                  
+            //check if the term is in memory
+            if((postingList = cache.get(token))!=null){
+                  postingListArray = postingList.split(";");
+            }else{
+                postingList = readBlockFromFile(token);
+                if(postingList!=null){
+                    postingListArray=postingList.split(";");
+                    cache.put(token, postingList);
+                }
+            }
+           
+            List<Posting>  termPostings = new ArrayList<>();
+            String[] divPostings = null;
+            String[] positions = null;
+            List<Integer> positionsList = null;
+            
+            for(int p=1;p<postingListArray.length;p++){
+                positionsList = new ArrayList<>();
+                divPostings = postingListArray[p].split(":");
+                positions = divPostings[2].split(",");
+                
+                for(int i=0;i<positions.length;i++){
+                    positionsList.add(Integer.parseInt(positions[i]));
+                }
+               
+                
+                termPostings.add(new Posting(Integer.parseInt(divPostings[0]), Double.parseDouble(divPostings[1]),positionsList));
+               
+            }
+            listTermsPosTingList.add(termPostings);
+        }  
+        
+        /*for(int i=0;i<listTermsPosTingList.size();i++){
+            System.out.println(listTermsPosTingList.get(i));
+        }*/
+        
+        int level=1;
+        int[] DIF = new int[listTermsPosTingList.size()];
+        
+        //compor isto para ver a distancia de palavras
+        for(int i=0;i<DIF.length;i++){
+            DIF[i]=1;
+        }
+        
+        
+        boolean levelUp=true;
+        int maxLevel = listTermsPosTingList.size()-1;
+        List<Posting> firstTermPostings = listTermsPosTingList.get(0);
+        System.out.println(firstTermPostings.size());
+        System.out.println(listTermsPosTingList.size());
+        for(int i = 0;i<firstTermPostings.size();i++){
+            int docIDBase = firstTermPostings.get(i).getId();
+         
+            List<Posting> termPosting = listTermsPosTingList.get(level);
+            for(Posting pos : termPosting){
+                level=1;
+              //  System.out.println(pos+">"+firstTermPostings.get(i));
+                if(pos.getId()== docIDBase){
+                    //System.out.println("##################################");
+                    List<Integer> positionsBase = firstTermPostings.get(i).getPositionList();
+                    List<Integer> secondPositionsTerm = pos.getPositionList();
+                    for(int posBase : positionsBase){
+                        if(secondPositionsTerm.contains(posBase+DIF[level-1])){
+                            levelUp=true;
+                            level=1;
+                            List<ScoreRetrievalPhrase> tempResults;
+                            List<ScoreRetrievalPhrase> listPrhaseSearchDocsResult = new ArrayList<>();
+                            listPrhaseSearchDocsResult.add(new ScoreRetrievalPhrase(level-1,pos));
+                            listPrhaseSearchDocsResult.add(new ScoreRetrievalPhrase(level,firstTermPostings.get(i)));
+                            level=level+1;
+                            while(level<=maxLevel && levelUp){
+                                //System.out.println(level);
+                                //System.out.println(docIDBase+"--"+listTermsPosTingList.get(level).size() +"--"+ posBase +"--"+  DIF[level]+level+"--"+level);
+                                tempResults = checkIfTermIsNextToOther(docIDBase,listTermsPosTingList.get(level),posBase,DIF[level-1]+level-1,level);
+                                if(tempResults.size()>0){
+                                   listPrhaseSearchDocsResult.addAll(tempResults);
+                                   level=level+1;
+                                }else{
+                                    levelUp=false;
+                                    listPrhaseSearchDocsResult.clear();
+                                }    
+                            }
+                            
+                            if(level>maxLevel){
+                                double scoreResult=0;
+                                for(ScoreRetrievalPhrase word : listPrhaseSearchDocsResult){
+                                    System.out.println(word.getId());
+                                    scoreResult += word.getPosting().getLogFreq() + Math.log10(totalDocs/(listTermsPosTingList.get(word.getId()).size()-1));
+                                }
+                                
+                                score.put(docIDBase,scoreResult);
+                                
+                                listPrhaseSearchDocsResult.clear();
+                                
+                            }
+                                
+                           
+                        }
+                    }
+                }else if(pos.getId()>docIDBase){
+                    break;
+                }       
+            }
+               
+            
+            
+        }
+  
+        
+        return score;   
+        
+    }
+    
+    
+    
      /**
     * Function to know in which block is a given term.
     *
@@ -264,7 +428,7 @@ public class RetrievalRanked {
             }
         }
 
-        String postingList;
+        String postingList="";
         String[] postingListArray=null;
         double weightTD;
         int docId;
@@ -274,15 +438,16 @@ public class RetrievalRanked {
                   
             //check if the term is in memory
             if((postingList = cache.get(token))!=null){
-                  postingListArray = postingList.split(",");
+                  postingListArray = postingList.split(";");
             }else{
                 postingList = readBlockFromFile(token);
                 if(postingList!=null){
-                    postingListArray=postingList.split(",");
+                    postingListArray=postingList.split(";");
                     cache.put(token, postingList);
                 }
             }
-           
+            
+            
             //calculating and save score
             if(postingList!=null){
                 idf=Math.log10(totalDocs/(postingListArray.length-1));
@@ -297,7 +462,7 @@ public class RetrievalRanked {
                 }
             }
         }
-           
+        
         return score;   
     }
     

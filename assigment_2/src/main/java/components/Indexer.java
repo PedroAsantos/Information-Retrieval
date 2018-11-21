@@ -5,6 +5,7 @@
  */
 package components;
 
+import com.sun.xml.internal.ws.util.StringUtils;
 import obj_indexer.EntryTermPost;
 import obj_indexer.Posting;
 import java.io.BufferedReader;
@@ -17,6 +18,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  *
@@ -72,9 +75,28 @@ public class Indexer {
     * @param documentString the tokens of the document to add to the indexer.
     * @param documentId the id of the document
     *  
-    */
+    */    
     public boolean addToPostingList(List<String> documentString,int documentId){
         //add words of this document to index.     
+        
+        
+        //mao to save positions of each word in the document
+        Map<String,List<Integer>> tokenPosition = new HashMap<>();
+        
+        
+        for(int i = 0;i<documentString.size();i++){
+            String tokenTemp = documentString.get(i);
+            if(tokenPosition.containsKey(tokenTemp)){
+                List<Integer> tempPosList = tokenPosition.get(tokenTemp);
+                tempPosList.add(i);
+                tokenPosition.put(tokenTemp,tempPosList);     
+            }else{
+                tokenPosition.put(tokenTemp,new ArrayList<>(Arrays.asList(i)));
+            }
+        
+        }
+        
+
         
         //counting the number of each term that happens in the doc
         Map<String, Long> counts = documentString.stream().collect(Collectors.groupingBy(e -> e,Collectors.counting()));
@@ -105,7 +127,7 @@ public class Indexer {
         documentString = documentString.stream().distinct().collect(Collectors.toList());
 
         //add to the index the term and the correspondent document id with the log freq normalized
-        documentString.stream().forEach(x -> {add(x,new Posting(documentId,normalizedValues.get(counts.get(x))));});
+        documentString.stream().forEach(x -> {add(x,new Posting(documentId,normalizedValues.get(counts.get(x)),tokenPosition.get(x)));});
 
         return true;
     }
@@ -133,8 +155,7 @@ public class Indexer {
             PrintWriter writerBlock = new PrintWriter(bw);
             
             invertedIndex.entrySet().forEach((entry) -> {
-            //System.out.println(entry.getKey() + " = " + entry.getValue());
-            writerBlock.println(entry.getKey() + ";" + entry.getValue().toString());
+            writerBlock.println(entry.getKey() + "»" + entry.getValue().toString().replace(", ", ""));
             });
             
             writerBlock.close();
@@ -191,14 +212,15 @@ public class Indexer {
             } catch (IOException ex) {
                 Logger.getLogger(Indexer.class.getName()).log(Level.SEVERE, null, ex);
             }
-            lineArray= line.split(";");
+            lineArray= line.split("»");
             pq.add(new EntryTermPost(lineArray[0],lineArray[1],block));
         }
         List<EntryTermPost> listEntries = new ArrayList<>();
-        PriorityQueue<Posting> mergedPostingList = new PriorityQueue<>(); 
+        List<Posting> mergedPostingList = new ArrayList<>(); 
         String[] postingList = null;
         String docId;
         String freq;
+        String positions;
         //create file for indexer
         createIndexerFile();
         
@@ -213,16 +235,18 @@ public class Indexer {
                 if(listEntries.size()>1){
                     //transformar tudo numa entry, ordenar as posting lists
                     for(int i = 0;i<listEntries.size();i++){ 
-                        postingList = listEntries.get(i).getPostingList().replaceAll("[\\p{Ps}\\p{Pe}\\s+]","").split(",");
+                        postingList = listEntries.get(i).getPostingList().replaceAll("[\\p{Ps}\\p{Pe}\\s+]","").split(";");
                       
                         for (String posting : postingList) {
                             docId = posting.split(":")[0].replaceAll(":", "");
                             freq = posting.split(":")[1];
-                            mergedPostingList.add(new Posting(Integer.parseInt(docId),Double.parseDouble(freq)));
+                            positions = posting.split(":")[2];
+                           // positions.split(",")
+                            mergedPostingList.add(new Posting(Integer.parseInt(docId),freq,positions));
                         }    
                     }
                     //sort merged postling lsit
-                    //Collections.sort(mergedPostingList);
+                    Collections.sort(mergedPostingList);
                     //write to indexer term with the posting list merged
                     writeMergedPostingListIndexFile(listEntries.get(0).getTerm(),mergedPostingList);
                     //clear posting list;
@@ -235,7 +259,7 @@ public class Indexer {
                 
                 for(int i=0;i<listEntries.size();i++){
                     if((line =  bufferedReaders.get(listEntries.get(i).getBlockNumber()).readLine())!= null){
-                        lineArray = line.split(";");
+                        lineArray = line.split("»");
                         pq.add(new EntryTermPost(lineArray[0],lineArray[1],listEntries.get(i).getBlockNumber()));
                     }
                 }
@@ -277,15 +301,20 @@ public class Indexer {
     * Function to write to the final indexer the term and the merged posting list.
     * 
     */
-    private void writeMergedPostingListIndexFile(String term, PriorityQueue<Posting> mergedPostingList){
-         writer.println(term+ "," +  Arrays.toString(mergedPostingList.toArray()).replaceAll("[\\p{Ps}\\p{Pe}]","")); 
+    private void writeMergedPostingListIndexFile(String term, List<Posting> mergedPostingList){
+        StringBuilder builder = new StringBuilder();
+        for (Posting value : mergedPostingList) {
+            builder.append(value);
+        }
+       
+         writer.println(term+ ";" +  builder.toString().replaceAll("[\\p{Ps}\\p{Pe}]|\\s","")); 
     }
     /**
     * Function to write to the final indexer the term and the posting list when it was not necesssary to merge.
     * 
     */    
     private void writeIndexFile(EntryTermPost entry){
-        writer.println(entry.getTerm()+ "," + entry.getPostingList().replaceAll("[\\p{Ps}\\p{Pe}]","")); 
+        writer.println(entry.getTerm()+ ";" + entry.getPostingList().replaceAll("[\\p{Ps}\\p{Pe}]","")); 
     }
      /**
     * Function to close the printer.
