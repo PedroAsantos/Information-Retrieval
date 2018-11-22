@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import retrieval.RetrievalRanked;
+import retrieval.ScoreRetrieval;
 
 
 /**
@@ -38,9 +39,9 @@ public class Assigment_2 {
     public static void main(String[] args) {
         long startTimeIndexing = System.currentTimeMillis();
         String filename;
-        filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Watches_v1_00.tsv";  
+        filename = "/home/rute/Documents/cadeiras/5ano/ri/amazon_reviews_us_Wireless_v1_00.tsv";  
         String[] indexName = filename.split("/");
-        boolean simpleTokenize = true;
+        boolean simpleTokenize = false;
         File f = new File("indexer_"+indexName[indexName.length-1]+".txt");
 
         if(!(f.exists() && !f.isDirectory())){
@@ -116,19 +117,52 @@ public class Assigment_2 {
         
         long startTimeSearch = System.currentTimeMillis();
         //search to receive in a hashmap the results   
-        rr.cosineScore("faas", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        rr.cosineScore("1950watt", simpleTokenize).forEach((k,v)->System.out.println("k: "+ k + " v: "+ v));
        
         long stopTimeSearch = System.currentTimeMillis();
         long elapsedTimeSearch = stopTimeSearch - startTimeSearch;
         System.out.println("ElapseTime Search->"+elapsedTimeSearch);
        
        //search to receive the 10 elements with a higher score in a list 
-        System.out.println(rr.retrievalTop("faas", simpleTokenize,10));
+        System.out.println(rr.retrievalTop("constein", simpleTokenize,10));
+        System.out.println(rr.retrievalTop("Charging", simpleTokenize,10));
+        
         System.out.println("phase search");
-        rr.cosineScorePhraseSearch("health bussines",true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
-        rr.cosineScorePhraseSearch("anticipate. Silicone band seems cheap",true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
-        rr.cosineScorePhraseSearch(" couple hours before",true).forEach((k,v)->System.out.println("k: "+ k + "v: "+ v));
+        
+        List<String> queries = new ArrayList<>();
+        queries.add("cable from milklor");
+        queries.add("short distance");
+        queries.add("official Apple");
+        queries.add(" eye-catching in reality");
+        queries.add(" GoPro is perfect for two cameras" );
+        queries.add("couple hours before");
+        queries.add("Switzerland or China");
+         //test a lot of queries.
+         testRetrievalPhraseSearch(queries,rr,simpleTokenize);
     }
+    /*
+    * Function to test a lot of queries in the prhase search
+    *
+    *
+    *
+    */
+    public static void testRetrievalPhraseSearch(List<String> queries,RetrievalRanked rr,boolean simpleTokenizer){
+         
+        long startTimeSearch;
+        long stopTimeSearch;
+        long elapsedTimeSearch;
+        
+        for(String querie : queries){
+            startTimeSearch = System.currentTimeMillis();
+            System.out.println(rr.retrievalTopPhaseSearch(querie, simpleTokenizer, 10));
+            stopTimeSearch = System.currentTimeMillis();
+            elapsedTimeSearch=stopTimeSearch - startTimeSearch;
+            System.out.println("ElapseTime Search->"+elapsedTimeSearch);
+        }
+             
+    }
+    
+    
     /*
     *
     * Function to read from file the total number of documents to be used in the instanciation of Retrieval Ranked Object.

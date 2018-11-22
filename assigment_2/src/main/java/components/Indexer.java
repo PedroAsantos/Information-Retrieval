@@ -93,7 +93,6 @@ public class Indexer {
             }else{
                 tokenPosition.put(tokenTemp,new ArrayList<>(Arrays.asList(i)));
             }
-        
         }
         
 

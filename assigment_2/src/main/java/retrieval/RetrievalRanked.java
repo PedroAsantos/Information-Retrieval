@@ -242,10 +242,25 @@ public class RetrievalRanked {
         return scores.subList(0, nResults);
         
     }
+    
+     public List<ScoreRetrieval> retrievalTopPhaseSearch(String query,boolean tokenizeSimple,int nResults){
+        Map<Integer,Double> result = cosineScorePhraseSearch(query,tokenizeSimple);
+        List<ScoreRetrieval> scores = new ArrayList<>(); 
+         
+        result.forEach((k,v)-> scores.add(new ScoreRetrieval(k,v)));
+        Collections.sort(scores);
+        
+        if(nResults>scores.size()){
+            nResults=scores.size();
+        }
+        
+        return scores.subList(0, nResults);
+        
+    }
+    
     private List<ScoreRetrievalPhrase>  checkIfTermIsNextToOther(int docIDBase, List<Posting> termPosting,int position, int DIF,int level){
         
         List<ScoreRetrievalPhrase> listPrhaseSearchDocsResult = new ArrayList<>();
-        System.out.println(position+DIF);
          for(Posting pos : termPosting){
               if(pos.getId()== docIDBase){
                     List<Integer> positionsBase = pos.getPositionList();
@@ -270,6 +285,7 @@ public class RetrievalRanked {
         //create queu where i put the list of each document
         List<String> queryTokens=null;
         
+        
         if(tokenizeSimple){
             queryTokens = SimpleTokenizer.tokenize(query);
         }else{
@@ -283,13 +299,11 @@ public class RetrievalRanked {
         List<List<Posting>> listTermsPosTingList = new ArrayList<>(); 
                 
         String postingList="";
-        String[] postingListArray=null;
-        double weightTD;
-        int docId;
-        double idf;
+      
+
        
         for(String token:queryTokens){
-                  
+            String[] postingListArray=null;     
             //check if the term is in memory
             if((postingList = cache.get(token))!=null){
                   postingListArray = postingList.split(";");
@@ -301,25 +315,26 @@ public class RetrievalRanked {
                 }
             }
            
-            List<Posting>  termPostings = new ArrayList<>();
-            String[] divPostings = null;
-            String[] positions = null;
-            List<Integer> positionsList = null;
-            
-            for(int p=1;p<postingListArray.length;p++){
-                positionsList = new ArrayList<>();
-                divPostings = postingListArray[p].split(":");
-                positions = divPostings[2].split(",");
-                
-                for(int i=0;i<positions.length;i++){
-                    positionsList.add(Integer.parseInt(positions[i]));
+            if(postingListArray!=null){
+                List<Posting>  termPostings = new ArrayList<>();
+                String[] divPostings = null;
+                String[] positions = null;
+                List<Integer> positionsList = null;
+                for(int p=1;p<postingListArray.length;p++){
+                    positionsList = new ArrayList<>();
+                    divPostings = postingListArray[p].split(":");
+                    positions = divPostings[2].split(",");
+
+                    for(int i=0;i<positions.length;i++){
+                        positionsList.add(Integer.parseInt(positions[i]));
+                    }
+
+
+                    termPostings.add(new Posting(Integer.parseInt(divPostings[0]), Double.parseDouble(divPostings[1]),positionsList));
+
                 }
-               
-                
-                termPostings.add(new Posting(Integer.parseInt(divPostings[0]), Double.parseDouble(divPostings[1]),positionsList));
-               
+                listTermsPosTingList.add(termPostings);
             }
-            listTermsPosTingList.add(termPostings);
         }  
         
         /*for(int i=0;i<listTermsPosTingList.size();i++){
@@ -327,78 +342,70 @@ public class RetrievalRanked {
         }*/
         
         int level=1;
-        int[] DIF = new int[listTermsPosTingList.size()];
         
-        //compor isto para ver a distancia de palavras
-        for(int i=0;i<DIF.length;i++){
-            DIF[i]=1;
-        }
-        
-        
-        boolean levelUp=true;
-        int maxLevel = listTermsPosTingList.size()-1;
-        List<Posting> firstTermPostings = listTermsPosTingList.get(0);
-        System.out.println(firstTermPostings.size());
-        System.out.println(listTermsPosTingList.size());
-        for(int i = 0;i<firstTermPostings.size();i++){
-            int docIDBase = firstTermPostings.get(i).getId();
-         
-            List<Posting> termPosting = listTermsPosTingList.get(level);
-            for(Posting pos : termPosting){
-                level=1;
-              //  System.out.println(pos+">"+firstTermPostings.get(i));
-                if(pos.getId()== docIDBase){
-                    //System.out.println("##################################");
-                    List<Integer> positionsBase = firstTermPostings.get(i).getPositionList();
-                    List<Integer> secondPositionsTerm = pos.getPositionList();
-                    for(int posBase : positionsBase){
-                        if(secondPositionsTerm.contains(posBase+DIF[level-1])){
-                            levelUp=true;
-                            level=1;
-                            List<ScoreRetrievalPhrase> tempResults;
-                            List<ScoreRetrievalPhrase> listPrhaseSearchDocsResult = new ArrayList<>();
-                            listPrhaseSearchDocsResult.add(new ScoreRetrievalPhrase(level-1,pos));
-                            listPrhaseSearchDocsResult.add(new ScoreRetrievalPhrase(level,firstTermPostings.get(i)));
-                            level=level+1;
-                            while(level<=maxLevel && levelUp){
-                                //System.out.println(level);
-                                //System.out.println(docIDBase+"--"+listTermsPosTingList.get(level).size() +"--"+ posBase +"--"+  DIF[level]+level+"--"+level);
-                                tempResults = checkIfTermIsNextToOther(docIDBase,listTermsPosTingList.get(level),posBase,DIF[level-1]+level-1,level);
-                                if(tempResults.size()>0){
-                                   listPrhaseSearchDocsResult.addAll(tempResults);
-                                   level=level+1;
-                                }else{
-                                    levelUp=false;
-                                    listPrhaseSearchDocsResult.clear();
-                                }    
-                            }
-                            
-                            if(level>maxLevel){
-                                double scoreResult=0;
-                                for(ScoreRetrievalPhrase word : listPrhaseSearchDocsResult){
-                                    System.out.println(word.getId());
-                                    scoreResult += word.getPosting().getLogFreq() + Math.log10(totalDocs/(listTermsPosTingList.get(word.getId()).size()-1));
+        if(!listTermsPosTingList.isEmpty()){
+                int[] DIF = new int[listTermsPosTingList.size()-1];
+                for(int i=0;i<DIF.length;i++){
+                    DIF[i]=1;
+                }        
+
+            boolean levelUp=true;
+            int maxLevel = listTermsPosTingList.size()-1;
+            List<Posting> firstTermPostings = listTermsPosTingList.get(0);
+            if(listTermsPosTingList.size()>1){
+                for(int i = 0;i<firstTermPostings.size();i++){
+                    int docIDBase = firstTermPostings.get(i).getId();
+
+                    List<Posting> termPosting = listTermsPosTingList.get(level);
+                    for(Posting pos : termPosting){
+                        level=1;
+                        if(pos.getId()== docIDBase){
+
+                            List<Integer> positionsBase = firstTermPostings.get(i).getPositionList();
+                            List<Integer> secondPositionsTerm = pos.getPositionList();
+                            for(int posBase : positionsBase){
+                              //  System.out.println(posBase+" "+pos);
+                                level=1;
+                                if(secondPositionsTerm.contains(posBase+DIF[level-1])){
+                                    levelUp=true;
+                                    List<ScoreRetrievalPhrase> tempResults;
+                                    List<ScoreRetrievalPhrase> listPrhaseSearchDocsResult = new ArrayList<>();
+                                    listPrhaseSearchDocsResult.add(new ScoreRetrievalPhrase(level-1,pos));
+                                    listPrhaseSearchDocsResult.add(new ScoreRetrievalPhrase(level,firstTermPostings.get(i)));
+                                    level=level+1;
+                                    while(level<=maxLevel && levelUp){
+                                        tempResults = checkIfTermIsNextToOther(docIDBase,listTermsPosTingList.get(level),posBase,DIF[level-1]+level-1,level);
+                                        if(tempResults.size()>0){
+                                           listPrhaseSearchDocsResult.addAll(tempResults);
+                                           level=level+1;
+                                        }else{
+                                            levelUp=false;
+                                            listPrhaseSearchDocsResult.clear();
+                                        }    
+                                    }
+
+                                    if(level>maxLevel){
+                                        double scoreResult=0;
+                                        for(ScoreRetrievalPhrase word : listPrhaseSearchDocsResult){
+                                            scoreResult += word.getPosting().getLogFreq() * Math.log10(totalDocs/(listTermsPosTingList.get(word.getId()).size()));
+                                        }
+
+                                        score.put(docIDBase,scoreResult);
+
+
+                                        listPrhaseSearchDocsResult.clear();  
+                                    }
+
+
                                 }
-                                
-                                score.put(docIDBase,scoreResult);
-                                
-                                listPrhaseSearchDocsResult.clear();
-                                
                             }
-                                
-                           
-                        }
+                        }else if(pos.getId()>docIDBase){
+                            break;
+                        }       
                     }
-                }else if(pos.getId()>docIDBase){
-                    break;
-                }       
+                }
             }
-               
-            
-            
         }
-  
-        
         return score;   
         
     }
