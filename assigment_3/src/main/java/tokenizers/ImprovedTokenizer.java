@@ -32,6 +32,7 @@ public class ImprovedTokenizer {
        
         //deal with the text with special characters, some simple mistakes like "five,stars" -> missing space ater comma, etc...
         String[] temp = documentLine.toLowerCase().replaceAll("[-+.:,_<>*=&%#;@?!\\p{Ps}\\p{Pe}]"," ").replaceAll("\\s+"," ").split(" ");
+      
         List<String> text = Arrays.asList(temp);
         //removing stop words
         List<String> filtered = text.stream()
@@ -48,7 +49,7 @@ public class ImprovedTokenizer {
             stemmer.stem();
             stemmedList.add(stemmer.getCurrent());
         });
-                     
+        System.out.println(filtered);
         //removing all special characters.
         return stemmedList.stream().map(x -> x.replaceAll("[^a-zA-Z 0-9]", "")).filter(x-> x.length()>0).collect(Collectors.toList());
         

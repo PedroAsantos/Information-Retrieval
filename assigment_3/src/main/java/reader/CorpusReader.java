@@ -6,10 +6,13 @@
 package reader;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -100,12 +103,39 @@ public class CorpusReader {
             } while (f.exists() && !f.isDirectory());
           
         }
+        
+        if(corpus.isEmpty()){
+            writeToFileTotalNumberOfDocs();
+        }
                  
         // returns the contents of each document in a collection (corpus)
         return corpus;
     }
     
-    
+     /**
+     * 
+     * Writes on the file indexer_number_of_docs.txt file the total number of documents 
+     */
+    private void writeToFileTotalNumberOfDocs(){
+        FileWriter fw = null;
+        PrintWriter writeLine=null;
+        try {
+            fw = new FileWriter("indexer_number_of_docs.txt");
+            BufferedWriter bw = new BufferedWriter(fw);
+            writeLine = new PrintWriter(bw);
+           
+            writeLine.println("numberOfDocs:"+docId);
+        } catch (IOException ex) {
+            Logger.getLogger(CorpusReader.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                writeLine.close();
+                fw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(CorpusReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
     
     
 }
