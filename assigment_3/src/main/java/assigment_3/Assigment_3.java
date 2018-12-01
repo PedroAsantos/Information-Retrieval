@@ -5,6 +5,7 @@
  */
 package assigment_3;
 
+import evaluate_queries.EvaluationQueries;
 import indexer.Indexer;
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,6 +18,7 @@ import java.util.logging.Logger;
 import reader.CorpusDocument;
 import reader.CorpusReader;
 import retrieval.RetrievalRanked;
+import retrieval.ScoreRetrieval;
 import tokenizers.ImprovedTokenizer;
 import tokenizers.SimpleTokenizer;
 
@@ -72,30 +74,46 @@ public class Assigment_3 {
         long timeToLive = 200;
         long timerInterval = 500;
         String nameFileQueries = "cranfield.queries.txt";
+        
         RetrievalRanked rr = new RetrievalRanked(indexerName,readFromFileTotalNumberOfDocuments(),cacheSize,timeToLive,timerInterval);
+        EvaluationQueries ev = new EvaluationQueries();
+        
         //generate block index
         rr.generateBlocks();
         
         
-        runQueriesFile(rr, nameFileQueries,simpleTokenize);
+        runQueriesFile(rr, ev, nameFileQueries,simpleTokenize);
         
         
         
         
     } 
     
-    public static void runQueriesFile(RetrievalRanked rr, String nameFile,boolean simpleTokenize){
+    public static void runQueriesFile(RetrievalRanked rr,EvaluationQueries ev, String nameFile,boolean simpleTokenize){
         
         BufferedReader bufferedReader = null;
         String line=null;
+        List<ScoreRetrieval> result;
         try {
             bufferedReader = new BufferedReader(new FileReader(nameFile));
-            
+            int queryID=1;
+            long startTimeSearch;
+            long stopTimeSearch;
+            long elapsedTime=0;
             while((line = bufferedReader.readLine()) != null){
-                System.out.println(rr.retrievalTop(line, simpleTokenize,10));                
-                
+                startTimeSearch = System.currentTimeMillis();
+                result = rr.retrievalTop(line, simpleTokenize,20);
+                stopTimeSearch = System.currentTimeMillis();
+                elapsedTime=elapsedTime + (stopTimeSearch-startTimeSearch);
+                ev.updateMetrics(result,queryID);                
+                queryID++;
             }
+            ev.calculateMAP();
+            ev.teste();
             
+            
+            System.out.println("Query Throughput: "+ (queryID-1)/(double)elapsedTime+ " ms");           
+            System.out.println("Query Latency: "+ (double) elapsedTime/(queryID-1)+ " ms");           
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Assigment_3.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -111,6 +129,7 @@ public class Assigment_3 {
         
     }
     
+
     
     
         /*
