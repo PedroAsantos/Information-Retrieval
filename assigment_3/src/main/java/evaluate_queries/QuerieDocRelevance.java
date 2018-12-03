@@ -9,7 +9,7 @@ package evaluate_queries;
  *
  * @author rute
  */
-public class QuerieDocRelevance {
+public class QuerieDocRelevance implements Comparable<QuerieDocRelevance> {
     
     private int docId;
     private int relevance;
@@ -27,5 +27,15 @@ public class QuerieDocRelevance {
         return relevance;
     }
     
-    
+    @Override
+    public int compareTo(QuerieDocRelevance t) {
+        if(this.relevance > t.getRelevance()){
+            return -1;
+        }
+        if(this.relevance< t.getRelevance()){
+            return 1;
+        }
+        
+        return 0;
+    }
 }

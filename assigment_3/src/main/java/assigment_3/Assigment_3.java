@@ -24,7 +24,7 @@ import tokenizers.SimpleTokenizer;
 
 /**
  *
- * @author rute
+ * @author Pedro Santos
  */
 public class Assigment_3 {
     public static void main(String[] args) {
@@ -73,6 +73,7 @@ public class Assigment_3 {
         int cacheSize = 30;
         long timeToLive = 200;
         long timerInterval = 500;
+        int numberOfResults = 100;
         String nameFileQueries = "cranfield.queries.txt";
         
         RetrievalRanked rr = new RetrievalRanked(indexerName,readFromFileTotalNumberOfDocuments(),cacheSize,timeToLive,timerInterval);
@@ -82,14 +83,19 @@ public class Assigment_3 {
         rr.generateBlocks();
         
         
-        runQueriesFile(rr, ev, nameFileQueries,simpleTokenize);
+        runQueriesFile(rr, ev, nameFileQueries,simpleTokenize,numberOfResults);
         
         
         
         
     } 
-    
-    public static void runQueriesFile(RetrievalRanked rr,EvaluationQueries ev, String nameFile,boolean simpleTokenize){
+    /*
+    *
+    * Function to read from files queries and calculate the metrics.
+    *
+    *
+    */
+    public static void runQueriesFile(RetrievalRanked rr,EvaluationQueries ev, String nameFile,boolean simpleTokenize,int numberOfResults){
         
         BufferedReader bufferedReader = null;
         String line=null;
@@ -102,17 +108,16 @@ public class Assigment_3 {
             long elapsedTime=0;
             while((line = bufferedReader.readLine()) != null){
                 startTimeSearch = System.currentTimeMillis();
-                result = rr.retrievalTop(line, simpleTokenize,20);
+                result = rr.retrievalTop(line, simpleTokenize,numberOfResults);
                 stopTimeSearch = System.currentTimeMillis();
                 elapsedTime=elapsedTime + (stopTimeSearch-startTimeSearch);
                 ev.updateMetrics(result,queryID);                
                 queryID++;
             }
-            ev.calculateMAP();
-            ev.teste();
+            ev.calculateMetrics();
             
             
-            System.out.println("Query Throughput: "+ (queryID-1)/(double)elapsedTime+ " ms");           
+            System.out.println("Query Throughput: "+ (queryID-1)/(double)elapsedTime+ " q/s");           
             System.out.println("Query Latency: "+ (double) elapsedTime/(queryID-1)+ " ms");           
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Assigment_3.class.getName()).log(Level.SEVERE, null, ex);
@@ -137,8 +142,7 @@ public class Assigment_3 {
     * Function to read from file the total number of documents to be used in the instanciation of Retrieval Ranked Object.
     *
     *
-    */
-    
+    */  
     public static int readFromFileTotalNumberOfDocuments(){
          BufferedReader bufferedReader = null;
          String line=null;
