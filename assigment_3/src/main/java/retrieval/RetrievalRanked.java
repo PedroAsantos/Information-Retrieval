@@ -46,14 +46,7 @@ public class RetrievalRanked {
     public RetrievalRanked(String fileName,int totalDocs,int cacheSize, long timeToLive, long timerInterval){
         this.fileName=fileName;
         this.totalDocs=totalDocs;
-       /* try {
-            this.raf = new RandomAccessFile(fileName, "r");
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(RetrievalRanked.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
-       
-        //findBottomTopByLetter();
-        //findBottomTopBlock();
+      
         cache = new MemoryCache(timeToLive,timerInterval,cacheSize);
     }
     
@@ -89,7 +82,7 @@ public class RetrievalRanked {
                    lineNumber++;
                    if(lineNumber % BLOCK_SIZE==0){
                        blockTempIndex.setBottomString(line.split(";")[0]);
-                       //blockTempIndex.setBottomLine(lineNumber);
+                      
                        blockBotTop.add(blockTempIndex);
 
                        numberBlock++;
@@ -116,12 +109,10 @@ public class RetrievalRanked {
                writerBlock.close();
                bufferedReader.close();
                blockTempIndex.setBottomString(lastLine.split(";")[0]);
-               //blockTempIndex.setBottomLine(lineNumber);
+              
                blockBotTop.add(blockTempIndex);
                
-             /*  for(BlockIndex block : blockBotTop){
-                System.out.println(block);
-               }*/
+           
                serializeBlocksArray();
 
            } catch (IOException ex) {
@@ -163,7 +154,7 @@ public class RetrievalRanked {
                  out.writeObject(blockBotTop);
                  out.close();
              }
-         System.out.printf("Serialized data is saved in blockArray.ser");
+         System.out.println("Serialized data is saved in blockArray.ser");
       } catch (IOException i) {
          i.printStackTrace();
       }

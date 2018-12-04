@@ -7,7 +7,7 @@ package evaluate_queries;
 
 /**
  *
- * @author rute
+ * @author Pedro Santos
  */
 public class QuerieDocRelevance implements Comparable<QuerieDocRelevance> {
     

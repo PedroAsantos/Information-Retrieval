@@ -49,7 +49,7 @@ public class ImprovedTokenizer {
             stemmer.stem();
             stemmedList.add(stemmer.getCurrent());
         });
-        System.out.println(filtered);
+       //System.out.println(filtered);
         //removing all special characters.
         return stemmedList.stream().map(x -> x.replaceAll("[^a-zA-Z 0-9]", "")).filter(x-> x.length()>0).collect(Collectors.toList());
         

@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import reader.CorpusReader;
 import retrieval.ScoreRetrieval;
 
 /**
@@ -39,6 +38,7 @@ public class EvaluationQueries {
     private double recallFinal;
     private double fMeausureFinal;
     private double ndcgResultsFinal;
+    
     public EvaluationQueries(){
         precision = new ArrayList<>();
         recall = new ArrayList<>();
@@ -49,7 +49,12 @@ public class EvaluationQueries {
         queriesRelevanceMap = new HashMap<Integer, List<QuerieDocRelevance>>();
         readDocQueriesRelevance();
     }
-    
+    /*
+    *
+    * Function to read file with the relevance of each document for each query
+    *
+    *
+    */  
     private void readDocQueriesRelevance(){
          File f = new File("cranfield.query.relevance.txt");
          if(f.exists() && !f.isDirectory()){
@@ -58,7 +63,7 @@ public class EvaluationQueries {
                 try {
                     fileReader = new FileReader(f);
                 } catch (FileNotFoundException ex) {
-                    Logger.getLogger(CorpusReader.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(EvaluationQueries.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -87,8 +92,13 @@ public class EvaluationQueries {
          }     
                    
     }
-    
-    private void updatePrecisionAndRecallAndAp(List<ScoreRetrieval> results, List<QuerieDocRelevance> querieRelevance){
+    /*
+    *
+    * Function to update/calculate the Precision, recall and the avarage precision of a query
+    *
+    *
+    */  
+    private void updatePrecisionAndRecallAndAp(List<ScoreRetrieval> results, List<QuerieDocRelevance> queryRelevance){
         List<Double> precisionQuerieAP = new ArrayList<>();
         List<Double> precisionQuerieAPRankedTop = new ArrayList<>();
         int tp=0;
@@ -100,7 +110,7 @@ public class EvaluationQueries {
         //results.stream().map(ScoreRetrieval::getDocId).filter( docId -> querieRelevance.contains(docId)).mapToInt(List::size).sum();
         
         for(ScoreRetrieval result : results){
-            if(querieRelevance.stream().filter(o -> o.getDocID()==result.getDocId()).findFirst().isPresent()){ 
+            if(queryRelevance.stream().filter(o -> o.getDocID()==result.getDocId()).findFirst().isPresent()){ 
                 tp++;
                 precisionQuerieAP.add(tp/(double)(tp+fp));
                 if(cont<rankMax){
@@ -123,7 +133,7 @@ public class EvaluationQueries {
         }
        
         
-        for(QuerieDocRelevance querieRel : querieRelevance){
+        for(QuerieDocRelevance querieRel : queryRelevance){
             if(!(results.stream().filter(q -> q.getDocId()==querieRel.getDocID()).findFirst().isPresent())){
                 fn++; 
             }
@@ -132,7 +142,12 @@ public class EvaluationQueries {
         precision.add(tp/(double)(tp+fp));
         recall.add(tp/(double)(tp+fn));
     }
-    
+   /*
+    *
+    * Function to update FMeasure
+    *
+    *
+    */  
     private void updateFMeasure(){
         double precisionValue = precision.get(precision.size()-1);
         double recallValue = recall.get(recall.size()-1);
@@ -143,7 +158,14 @@ public class EvaluationQueries {
         }
         
     }
-    
+    /**
+    * Function to get nResults and the by order
+    *
+    * @param  results the list of documents retrieved by a query
+    * @param  querieRelevance list of the documents and the revelance of each one that should be returned by a query
+    *
+    *
+    */
     private void calculateNDCG(List<ScoreRetrieval> results,List<QuerieDocRelevance> querieRelevance){
         List<Double> ndcgResultsQuery = new ArrayList<>();
         List<Double> realdcgResults = new ArrayList<>();
@@ -191,7 +213,12 @@ public class EvaluationQueries {
         ndcgResults.add(ndcgResultsQuery);
         
     }
-    
+    /**
+    *
+    * Function to update the values of the metrics
+    * @param  results the list of documents retrieved by a query
+    * @param querieID the id of the query to be able to calculate the metrics. 
+    */  
     public void updateMetrics(List<ScoreRetrieval> results, int querieID){
         List<QuerieDocRelevance> querieRelevance = queriesRelevanceMap.get(querieID);
         
@@ -199,7 +226,13 @@ public class EvaluationQueries {
         updateFMeasure();
         calculateNDCG(results,querieRelevance);
     }
-    
+      
+   /*
+    *
+    * Function to calculate the final results of the metrics and diplay the result
+    *
+    *
+    */  
     public void calculateMetrics(){
         //precision
         precisionFinal = precision.stream().mapToDouble(f -> f).sum()/precision.size();

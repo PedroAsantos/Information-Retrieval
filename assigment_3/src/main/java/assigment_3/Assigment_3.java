@@ -28,7 +28,8 @@ import tokenizers.SimpleTokenizer;
  */
 public class Assigment_3 {
     public static void main(String[] args) {
-        CorpusReader corpusReader = new CorpusReader("/home/rute/Documents/cadeiras/5ano/ri/cranfield/");
+        long startTimeIndexing = System.currentTimeMillis();
+        CorpusReader corpusReader = new CorpusReader("cranfield/");
         List<CorpusDocument> corpus = null;
         boolean simpleTokenize = true;
         String indexerName = "indexer.txt";
@@ -67,7 +68,9 @@ public class Assigment_3 {
             invertedIndexer.mergeBlocks();
             
         }
-        
+        long stopTimeIndexing = System.currentTimeMillis();
+        long elapsedTimeIndexing = stopTimeIndexing - startTimeIndexing;
+        System.out.println("ElapseTime Indexing->"+elapsedTimeIndexing);
         
                   
         int cacheSize = 30;
