@@ -2,7 +2,7 @@
 
 ## Assigment_1
 
-[Assigment_1 description]("RI_assignment1%10.pdf)
+[Assigment_1 description](<RI_assignment1 .pdf>)
 
 ## Assigment_2
 
